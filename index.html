@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cervejaria Artesanal | Compre Cervejas Locais e Frescas</title>
+    <meta name="description" content="Descubra nossas cervejas artesanais feitas com paixão. Compre online IPAs, Stouts, Pilsens e mais. Frete para todo o Brasil e retirada na fábrica.">
+    
+    <!-- Open Graph Básico -->
+    <meta property="og:title" content="Cervejaria Artesanal | Vitrine Online">
+    <meta property="og:description" content="Cervejas artesanais locais de alta qualidade. Compre online.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://www.cervejariaexemplo.com.br">
+    <meta property="og:image" content="https://www.cervejariaexemplo.com.br/assets/img/og-image.jpg">
+
+    <!-- Favicon -->
+    <link rel="icon" href="assets/img/favicon.ico" sizes="any">
+    <link rel="icon" href="assets/img/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/style.css">
+
+    <!-- JSON-LD Schema.org (LocalBusiness / Store & Product) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Brewery",
+          "name": "Cervejaria Artesanal",
+          "description": "Cervejaria local focada em estilos clássicos e inovações.",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "Rua Exemplo, 123",
+            "addressLocality": "Maringá",
+            "addressRegion": "PR",
+            "addressCountry": "BR"
+          }
+        },
+        {
+          "@type": "Product",
+          "name": "IPA Maringá",
+          "description": "India Pale Ale com notas cítricas e amargor marcante.",
+          "image": "https://www.cervejariaexemplo.com.br/assets/img/ipa.jpg",
+          "offers": {
+            "@type": "Offer",
+            "price": "28.90",
+            "priceCurrency": "BRL",
+            "availability": "https://schema.org/InStock"
+          }
+        }
+      ]
+    }
+    </script>
+</head>
+<body>
+    <!-- Skip link para acessibilidade (teclado) -->
+    <a href="#conteudo-principal" class="skip-link">Ir para o conteúdo principal</a>
+
+    <!-- Aviso de Verificação de Idade (Dialog nativo) -->
+    <dialog id="age-gate" class="age-gate" aria-labelledby="age-gate-title" aria-describedby="age-gate-desc" open>
+        <div class="age-gate__content">
+            <h2 id="age-gate-title" class="age-gate__title">Você tem 18 anos ou mais?</h2>
+            <p id="age-gate-desc" class="age-gate__description">O acesso a este site é restrito a maiores de idade.</p>
+            <form method="dialog" class="age-gate__actions">
+                <button type="button" class="btn btn--secondary" id="btn-no">Não</button>
+                <button type="submit" class="btn btn--primary" id="btn-yes" autofocus>Sim, sou maior de 18</button>
+            </form>
+        </div>
+    </dialog>
+
+    <header class="header">
+        <div class="header__container">
+            <!-- Logo -->
+            <a href="/" class="header__logo-link" aria-label="Página inicial da Cervejaria">
+                <img src="assets/img/logo-placeholder.svg" alt="Logo Cervejaria Artesanal" class="header__logo-img" width="150" height="50">
+            </a>
+
+            <!-- Navegação Principal -->
+            <nav class="nav" aria-label="Navegação principal">
+                <ul class="nav__list">
+                    <li class="nav__item"><a href="/" class="nav__link" aria-current="page">Início</a></li>
+                    <li class="nav__item"><a href="#vitrine" class="nav__link">Cervejas</a></li>
+                    <li class="nav__item"><a href="#estilos" class="nav__link">Estilos</a></li>
+                    <li class="nav__item"><a href="#sobre" class="nav__link">Sobre</a></li>
+                    <li class="nav__item"><a href="#contato" class="nav__link">Contato</a></li>
+                </ul>
+            </nav>
+
+            <!-- Carrinho -->
+            <button class="header__cart-btn" aria-label="Carrinho de compras, 0 itens" aria-live="polite">
+                <svg width="24" height="24" aria-hidden="true" focusable="false"><!-- Ícone SVG Placeholder --></svg>
+                <span class="header__cart-count">0</span>
+            </button>
+        </div>
+    </header>
+
+    <main id="conteudo-principal" class="main-content">
+        
+        <!-- Seção Hero -->
+        <section class="hero" aria-labelledby="hero-title">
+            <div class="hero__content">
+                <h1 id="hero-title" class="hero__title">Descubra o Verdadeiro Sabor da Cerveja Artesanal</h1>
+                <p class="hero__subtitle">Feitas com paixão, lúpulos selecionados e o frescor que você merece.</p>
+                <a href="#vitrine" class="btn btn--primary hero__cta">Comprar Cervejas</a>
+            </div>
+        </section>
+
+        <!-- Filtros por Estilo -->
+        <section id="estilos" class="filters" aria-labelledby="filters-title">
+            <h2 id="filters-title" class="sr-only">Filtrar por estilos</h2>
+            <form class="filters__form" action="/buscar" method="GET">
+                <fieldset class="filters__fieldset">
+                    <legend class="filters__legend">Selecione os estilos:</legend>
+                    <div class="filters__options">
+                        <label class="filters__label"><input type="checkbox" name="estilo" value="ipa" class="filters__checkbox"> IPA</label>
+                        <label class="filters__label"><input type="checkbox" name="estilo" value="stout" class="filters__checkbox"> Stout</label>
+                        <label class="filters__label"><input type="checkbox" name="estilo" value="pilsen" class="filters__checkbox"> Pilsen</label>
+                        <label class="filters__label"><input type="checkbox" name="estilo" value="weiss" class="filters__checkbox"> Weiss</label>
+                        <label class="filters__label"><input type="checkbox" name="estilo" value="apa" class="filters__checkbox"> APA</label>
+                    </div>
+                </fieldset>
+                <button type="submit" class="btn btn--secondary filters__submit">Aplicar Filtros</button>
+            </form>
+        </section>
+
+        <!-- Vitrine de Produtos -->
+        <section id="vitrine" class="showcase" aria-labelledby="showcase-title">
+            <h2 id="showcase-title" class="showcase__title">Nossas Cervejas</h2>
+            
+            <div class="showcase__grid">
+                <!-- Card 1 -->
+                <article class="product-card">
+                    <figure class="product-card__figure">
+                        <img src="assets/img/beer-ipa.jpg" alt="Garrafa de cerveja IPA com rótulo verde" class="product-card__img" loading="lazy" width="300" height="400">
+                    </figure>
+                    <div class="product-card__details">
+                        <h3 class="product-card__name">Hop Explosion IPA</h3>
+                        <p class="product-card__style">India Pale Ale</p>
+                        <ul class="product-card__specs" aria-label="Especificações da cerveja">
+                            <li class="product-card__spec" title="Teor Alcoólico"><abbr title="Alcohol by Volume">ABV</abbr>: 6.5%</li>
+                            <li class="product-card__spec" title="Amargor"><abbr title="International Bitterness Units">IBU</abbr>: 55</li>
+                            <li class="product-card__spec" title="Volume">473ml</li>
+                        </ul>
+                        <p class="product-card__price-wrapper">
+                            <data value="28.90" class="product-card__price">R$ 28,90</data>
+                        </p>
+                        <button class="btn btn--primary product-card__add-btn" aria-label="Adicionar Hop Explosion IPA ao carrinho">Adicionar ao carrinho</button>
+                    </div>
+                </article>
+
+                <!-- Card 2 -->
+                <article class="product-card">
+                    <figure class="product-card__figure">
+                        <img src="assets/img/beer-stout.jpg" alt="Lata de cerveja Stout com rótulo escuro" class="product-card__img" loading="lazy" width="300" height="400">
+                    </figure>
+                    <div class="product-card__details">
+                        <h3 class="product-card__name">Midnight Stout</h3>
+                        <p class="product-card__style">Dry Stout</p>
+                        <ul class="product-card__specs" aria-label="Especificações da cerveja">
+                            <li class="product-card__spec"><abbr title="Alcohol by Volume">ABV</abbr>: 5.0%</li>
+                            <li class="product-card__spec"><abbr title="International Bitterness Units">IBU</abbr>: 35</li>
+                            <li class="product-card__spec">473ml</li>
+                        </ul>
+                        <p class="product-card__price-wrapper">
+                            <data value="26.50" class="product-card__price">R$ 26,50</data>
+                        </p>
+                        <button class="btn btn--primary product-card__add-btn" aria-label="Adicionar Midnight Stout ao carrinho">Adicionar ao carrinho</button>
+                    </div>
+                </article>
+
+                <!-- Card 3 -->
+                <article class="product-card">
+                    <figure class="product-card__figure">
+                        <img src="assets/img/beer-pilsen.jpg" alt="Garrafa de cerveja Pilsen cristalina" class="product-card__img" loading="lazy" width="300" height="400">
+                    </figure>
+                    <div class="product-card__details">
+                        <h3 class="product-card__name">Classic Pilsen</h3>
+                        <p class="product-card__style">Premium American Lager</p>
+                        <ul class="product-card__specs" aria-label="Especificações da cerveja">
+                            <li class="product-card__spec"><abbr title="Alcohol by Volume">ABV</abbr>: 4.8%</li>
+                            <li class="product-card__spec"><abbr title="International Bitterness Units">IBU</abbr>: 15</li>
+                            <li class="product-card__spec">600ml</li>
+                        </ul>
+                        <p class="product-card__price-wrapper">
+                            <data value="22.00" class="product-card__price">R$ 22,00</data>
+                        </p>
+                        <button class="btn btn--primary product-card__add-btn" aria-label="Adicionar Classic Pilsen ao carrinho">Adicionar ao carrinho</button>
+                    </div>
+                </article>
+
+                <!-- Card 4 -->
+                <article class="product-card">
+                    <figure class="product-card__figure">
+                        <img src="assets/img/beer-weiss.jpg" alt="Lata de cerveja Weiss com rótulo amarelo" class="product-card__img" loading="lazy" width="300" height="400">
+                    </figure>
+                    <div class="product-card__details">
+                        <h3 class="product-card__name">Bavarian Weiss</h3>
+                        <p class="product-card__style">Hefeweizen</p>
+                        <ul class="product-card__specs" aria-label="Especificações da cerveja">
+                            <li class="product-card__spec"><abbr title="Alcohol by Volume">ABV</abbr>: 5.2%</li>
+                            <li class="product-card__spec"><abbr title="International Bitterness Units">IBU</abbr>: 12</li>
+                            <li class="product-card__spec">473ml</li>
+                        </ul>
+                        <p class="product-card__price-wrapper">
+                            <data value="25.90" class="product-card__price">R$ 25,90</data>
+                        </p>
+                        <button class="btn btn--primary product-card__add-btn" aria-label="Adicionar Bavarian Weiss ao carrinho">Adicionar ao carrinho</button>
+                    </div>
+                </article>
+
+                <!-- Card 5 -->
+                <article class="product-card">
+                    <figure class="product-card__figure">
+                        <img src="assets/img/beer-apa.jpg" alt="Garrafa de cerveja APA com rótulo laranja" class="product-card__img" loading="lazy" width="300" height="400">
+                    </figure>
+                    <div class="product-card__details">
+                        <h3 class="product-card__name">Sunset APA</h3>
+                        <p class="product-card__style">American Pale Ale</p>
+                        <ul class="product-card__specs" aria-label="Especificações da cerveja">
+                            <li class="product-card__spec"><abbr title="Alcohol by Volume">ABV</abbr>: 5.5%</li>
+                            <li class="product-card__spec"><abbr title="International Bitterness Units">IBU</abbr>: 40</li>
+                            <li class="product-card__spec">473ml</li>
+                        </ul>
+                        <p class="product-card__price-wrapper">
+                            <data value="27.50" class="product-card__price">R$ 27,50</data>
+                        </p>
+                        <button class="btn btn--primary product-card__add-btn" aria-label="Adicionar Sunset APA ao carrinho">Adicionar ao carrinho</button>
+                    </div>
+                </article>
+
+                <!-- Card 6 -->
+                <article class="product-card">
+                    <figure class="product-card__figure">
+                        <img src="assets/img/beer-sour.jpg" alt="Lata de cerveja Sour com frutas vermelhas" class="product-card__img" loading="lazy" width="300" height="400">
+                    </figure>
+                    <div class="product-card__details">
+                        <h3 class="product-card__name">Berry Sour</h3>
+                        <p class="product-card__style">Catharina Sour</p>
+                        <ul class="product-card__specs" aria-label="Especificações da cerveja">
+                            <li class="product-card__spec"><abbr title="Alcohol by Volume">ABV</abbr>: 4.2%</li>
+                            <li class="product-card__spec"><abbr title="International Bitterness Units">IBU</abbr>: 8</li>
+                            <li class="product-card__spec">473ml</li>
+                        </ul>
+                        <p class="product-card__price-wrapper">
+                            <data value="30.00" class="product-card__price">R$ 30,00</data>
+                        </p>
+                        <button class="btn btn--primary product-card__add-btn" aria-label="Adicionar Berry Sour ao carrinho">Adicionar ao carrinho</button>
+                    </div>
+                </article>
+            </div>
+        </section>
+
+        <!-- Seção Sobre -->
+        <section id="sobre" class="about" aria-labelledby="about-title">
+            <div class="about__content">
+                <h2 id="about-title" class="about__title">Nossa História</h2>
+                <p class="about__text">Tudo começou com pequenos lotes feitos em casa com o método Brew in a Bag (BIAB). A paixão por testar receitas e moer nosso próprio malte nos fez crescer. Hoje, nossa fábrica em Maringá - PR leva essa mesma essência e cuidado artesanal da panela direto para o seu copo.</p>
+            </div>
+        </section>
+
+        <!-- Seção de Benefícios -->
+        <section class="benefits" aria-labelledby="benefits-title">
+            <h2 id="benefits-title" class="sr-only">Vantagens de comprar conosco</h2>
+            <ul class="benefits__list">
+                <li class="benefits__item">
+                    <h3 class="benefits__subtitle">Frete Grátis</h3>
+                    <p class="benefits__desc">Para compras acima de R$ 150,00.</p>
+                </li>
+                <li class="benefits__item">
+                    <h3 class="benefits__subtitle">Retire na Fábrica</h3>
+                    <p class="benefits__desc">Compre online e pegue sua cerveja fresca na hora.</p>
+                </li>
+                <li class="benefits__item">
+                    <h3 class="benefits__subtitle">Clube de Assinatura</h3>
+                    <p class="benefits__desc">Receba lançamentos exclusivos todos os meses.</p>
+                </li>
+            </ul>
+        </section>
+
+        <!-- Newsletter -->
+        <section class="newsletter" aria-labelledby="newsletter-title">
+            <div class="newsletter__container">
+                <h2 id="newsletter-title" class="newsletter__title">Fique por dentro das novidades</h2>
+                <p class="newsletter__desc">Assine nossa newsletter e ganhe 10% de desconto na primeira compra.</p>
+                <form class="newsletter__form" action="/subscribe" method="POST">
+                    <label for="newsletter-email" class="sr-only">Seu endereço de e-mail</label>
+                    <input type="email" id="newsletter-email" name="email" class="newsletter__input" placeholder="seu@email.com" required autocomplete="email">
+                    <button type="submit" class="btn btn--primary newsletter__submit">Assinar</button>
+                </form>
+            </div>
+        </section>
+
+    </main>
+
+    <footer id="contato" class="footer">
+        <div class="footer__container">
+            <!-- Informações Institucionais -->
+            <div class="footer__info">
+                <h2 class="footer__title">Cervejaria Artesanal</h2>
+                <address class="footer__address">
+                    <p>Maringá, PR - Brasil</p>
+                    <p><a href="mailto:contato@cervejariaexemplo.com.br" class="footer__link">contato@cervejariaexemplo.com.br</a></p>
+                    <p><a href="tel:+5544999999999" class="footer__link">(44) 99999-9999</a></p>
+                </address>
+            </div>
+
+            <!-- Links Rápidos -->
+            <nav class="footer__nav" aria-label="Navegação de rodapé">
+                <ul class="footer__list">
+                    <li class="footer__item"><a href="/termos" class="footer__link">Termos de Serviço</a></li>
+                    <li class="footer__item"><a href="/privacidade" class="footer__link">Política de Privacidade</a></li>
+                    <li class="footer__item"><a href="/trocas" class="footer__link">Trocas e Devoluções</a></li>
+                </ul>
+            </nav>
+
+            <!-- Redes Sociais -->
+            <div class="footer__social">
+                <h3 class="footer__subtitle sr-only">Redes Sociais</h3>
+                <ul class="footer__social-list">
+                    <li><a href="#" class="footer__social-link" aria-label="Siga-nos no Instagram">Instagram</a></li>
+                    <li><a href="#" class="footer__social-link" aria-label="Curta nossa página no Facebook">Facebook</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Aviso Legal -->
+        <div class="footer__legal">
+            <small class="footer__warning">Venda proibida para menores de 18 anos. Beba com moderação.</small>
+            <p class="footer__copyright">&copy; 2026 Cervejaria Artesanal. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+
+    <!-- JS Principal -->
+    <script src="js/main.js" defer></script>
+</body>
+</html>
