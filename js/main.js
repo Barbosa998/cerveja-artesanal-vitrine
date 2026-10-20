@@ -43,7 +43,8 @@
     /* ======================================================================
        UTILITÁRIOS
        ====================================================================== */
-    const $ = (selector, scope = document) => scope.querySelector(selector); const $$ = (selector, scope = document) => Array.from(scope.querySelectorAll(selector));
+    const $ = (selector, scope = document) => scope.querySelector(selector);
+    const $$ = (selector, scope = document) => Array.from(scope.querySelectorAll(selector));
 
     const brl = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 
@@ -109,8 +110,14 @@
        2. FILTROS POR ESTILO
        ====================================================================== */
     function initFilters() {
-        const form = $('#filters-form'); if (!form) return;          const cards = $$('.product-card');
-        const status = $('#filters-status');          const applyFilters = () => { const selected = $$('input[name="estilo"]:checked', form).map((input) => input.value);
+        const form = $('#filters-form');
+        if (!form) return;
+
+        const cards = $$('.product-card');
+        const status = $('#filters-status');
+
+        const applyFilters = () => {
+            const selected = $$('input[name="estilo"]:checked', form).map((input) => input.value);
             let visible = 0;
 
             cards.forEach((card) => {
@@ -132,7 +139,8 @@
             $('#vitrine').scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
         });
 
-        $('#filters-clear').addEventListener('click', () => { $$('input[name="estilo"]', form).forEach((input) => { input.checked = false; });
+        $('#filters-clear').addEventListener('click', () => {
+            $$('input[name="estilo"]', form).forEach((input) => { input.checked = false; });
             applyFilters();
         });
 
@@ -507,43 +515,7 @@
     /* ======================================================================
        INICIALIZAÇÃO (o script usa "defer", então o HTML já está pronto)
        ====================================================================== */
-/* ======================================================================
-       5. CARROSSEL DESLIZANTE (Arrastar com o mouse na vitrine)
-       ====================================================================== */
-    function initShowcaseSlider() {
-        const track = $('.showcase__grid');
-        if (!track) return;
 
-        let isDown = false;
-        let startX = 0;
-        let scrollLeft = 0;
-
-        track.addEventListener('mousedown', (event) => {
-            isDown = true;
-            startX = event.pageX - track.offsetLeft;
-            scrollLeft = track.scrollLeft;
-            track.style.scrollSnapType = 'none'; // Desativa o imã enquanto arrasta
-            track.style.scrollBehavior = 'auto';
-        });
-
-        const stopDrag = () => {
-            if (!isDown) return;
-            isDown = false;
-            track.style.scrollSnapType = 'x mandatory'; // Reativa o alinhamento suave
-            track.style.scrollBehavior = 'smooth';
-        };
-
-        track.addEventListener('mouseleave', stopDrag);
-        track.addEventListener('mouseup', stopDrag);
-
-        track.addEventListener('mousemove', (event) => {
-            if (!isDown) return;
-            event.preventDefault();
-            const x = event.pageX - track.offsetLeft;
-            const walk = (x - startX) * 1.5;
-            track.scrollLeft = scrollLeft - walk;
-        });
-    }
     initAgeGate();
     initFilters();
     initCart();

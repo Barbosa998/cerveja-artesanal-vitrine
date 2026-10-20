@@ -19,6 +19,11 @@
     <link rel="icon" href="assets/img/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
 
+    <!-- Fontes: Outfit (títulos) + Plus Jakarta Sans (texto) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
+
     <!-- CSS -->
     <link rel="stylesheet" href="css/style.css">
 
@@ -72,6 +77,12 @@
         </div>
     </dialog>
 
+    <!-- Barra de avisos -->
+    <div class="topbar">
+        <p class="topbar__text">Frete grátis em compras acima de R$ 150,00</p>
+        <p class="topbar__text topbar__text--extra">Retirada na fábrica em Maringá - PR</p>
+    </div>
+
     <header class="header">
         <div class="header__container">
             <!-- Logo -->
@@ -109,36 +120,38 @@
             <div class="hero__content">
                 <h1 id="hero-title" class="hero__title">Descubra o Verdadeiro Sabor da Cerveja Artesanal</h1>
                 <p class="hero__subtitle">Feitas com paixão, lúpulos selecionados e o frescor que você merece.</p>
-                <a href="#vitrine" class="btn btn--primary hero__cta">Comprar Cervejas</a>
-            </div>
-        </section>
-
-        <!-- Filtros por Estilo (filtragem feita no navegador pelo js/main.js) -->
-        <section id="estilos" class="filters" aria-labelledby="filters-title">
-            <h2 id="filters-title" class="sr-only">Filtrar por estilos</h2>
-            <form class="filters__form" id="filters-form">
-                <fieldset class="filters__fieldset">
-                    <legend class="filters__legend">Selecione os estilos:</legend>
-                    <div class="filters__options">
-                        <label class="filters__label"><input type="checkbox" name="estilo" value="ipa" class="filters__checkbox"> IPA</label>
-                        <label class="filters__label"><input type="checkbox" name="estilo" value="stout" class="filters__checkbox"> Stout</label>
-                        <label class="filters__label"><input type="checkbox" name="estilo" value="pilsen" class="filters__checkbox"> Pilsen</label>
-                        <label class="filters__label"><input type="checkbox" name="estilo" value="weiss" class="filters__checkbox"> Weiss</label>
-                        <label class="filters__label"><input type="checkbox" name="estilo" value="apa" class="filters__checkbox"> APA</label>
-                        <label class="filters__label"><input type="checkbox" name="estilo" value="sour" class="filters__checkbox"> Sour</label>
-                    </div>
-                </fieldset>
-                <div class="filters__actions">
-                    <button type="submit" class="btn btn--primary filters__submit">Ver cervejas</button>
-                    <button type="button" class="btn btn--secondary filters__clear" id="filters-clear">Limpar filtros</button>
+                <div class="hero__actions">
+                    <a href="#vitrine" class="btn btn--primary hero__cta">Comprar cervejas</a>
+                    <a href="#sobre" class="btn btn--ghost">Nossa história</a>
                 </div>
-                <p class="filters__status" id="filters-status" role="status"></p>
-            </form>
+            </div>
         </section>
 
         <!-- Vitrine de Produtos -->
         <section id="vitrine" class="showcase" aria-labelledby="showcase-title">
-            <h2 id="showcase-title" class="showcase__title">Nossas Cervejas</h2>
+            <div class="showcase__header">
+                <h2 id="showcase-title" class="showcase__title">Nossas cervejas</h2>
+                <p class="showcase__intro">Rótulos produzidos em pequenos lotes, direto da nossa fábrica em Maringá.</p>
+            </div>
+
+            <!-- Filtros por estilo (filtragem feita no navegador pelo js/main.js) -->
+            <form class="filters" id="filters-form">
+                <fieldset class="filters__fieldset" id="estilos">
+                    <legend class="filters__legend">Estilos</legend>
+                    <div class="filters__options">
+                        <label class="filters__label"><input type="checkbox" name="estilo" value="ipa" class="filters__checkbox"><span>IPA</span></label>
+                        <label class="filters__label"><input type="checkbox" name="estilo" value="stout" class="filters__checkbox"><span>Stout</span></label>
+                        <label class="filters__label"><input type="checkbox" name="estilo" value="pilsen" class="filters__checkbox"><span>Pilsen</span></label>
+                        <label class="filters__label"><input type="checkbox" name="estilo" value="weiss" class="filters__checkbox"><span>Weiss</span></label>
+                        <label class="filters__label"><input type="checkbox" name="estilo" value="apa" class="filters__checkbox"><span>APA</span></label>
+                        <label class="filters__label"><input type="checkbox" name="estilo" value="sour" class="filters__checkbox"><span>Sour</span></label>
+                    </div>
+                </fieldset>
+                <div class="filters__meta">
+                    <p class="filters__status" id="filters-status" role="status"></p>
+                    <button type="button" class="filters__clear" id="filters-clear">Limpar filtros</button>
+                </div>
+            </form>
 
             <div class="showcase__grid">
                 <!-- Card 1 -->
@@ -351,7 +364,17 @@
             <ul class="cart__items" id="cart-items"></ul>
 
             <div class="cart__footer" id="cart-footer" hidden>
+                <div class="cart__coupon">
+                    <label for="cart-coupon-input" class="sr-only">Cupom de desconto</label>
+                    <input type="text" id="cart-coupon-input" class="cart__coupon-input" placeholder="Cupom de desconto" autocomplete="off">
+                    <button type="button" class="btn btn--secondary cart__coupon-btn" id="cart-coupon-apply">Aplicar</button>
+                </div>
+                <p class="cart__coupon-msg" id="cart-coupon-msg" role="status"></p>
                 <p class="cart__shipping" id="cart-shipping"></p>
+                <p class="cart__discount" id="cart-discount-row" hidden>
+                    <span>Cupom <strong id="cart-coupon-name"></strong></span>
+                    <span id="cart-discount"></span>
+                </p>
                 <p class="cart__total"><span>Total</span> <strong id="cart-total">R$ 0,00</strong></p>
                 <button type="button" class="btn btn--primary cart__checkout" id="cart-checkout">Finalizar pelo WhatsApp</button>
                 <button type="button" class="btn btn--secondary cart__clear" id="cart-clear">Esvaziar carrinho</button>

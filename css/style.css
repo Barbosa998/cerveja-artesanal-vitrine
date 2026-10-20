@@ -1,44 +1,34 @@
 /* ==========================================================================
-   TIPOGRAFIA MODERNA (Google Fonts)
-   Outfit para títulos de impacto + Plus Jakarta Sans para leitura clean
-   ========================================================================== */
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
-
-/* ==========================================================================
-   VARIÁVEIS (Design Tokens — Estética Craft Editorial)
+   VARIÁVEIS (Design Tokens)
+   Fontes (Outfit + Plus Jakarta Sans) são carregadas no <head> do index.html.
    ========================================================================== */
 :root {
-    --color-primary: #E08A2B;        /* Âmbar luminoso */
-    --color-primary-light: #F09D3E;  /* Hover suave */
-    --color-primary-dark: #B86B14;
-    --color-primary-text: #8F510A;   /* Contraste AA sobre fundo claro */
-    --color-on-primary: #111315;     /* Texto escuro sobre botão âmbar */
-    --color-secondary: #111315;      /* Preto Stout profundo */
-    --color-surface-dark: #1A1D21;   /* Cinza carvão para cartões escuros */
-    --color-background: #F7F5F0;     /* Creme Malte (Off-white elegante) */
+    /* Cores */
+    --color-primary: #E08A2B;        /* Âmbar */
+    --color-primary-light: #EE9B40;  /* Hover do botão principal */
+    --color-primary-text: #8F510A;   /* Âmbar escuro: texto sobre fundo claro (contraste AA) */
+    --color-on-primary: #111315;     /* Texto sobre o botão âmbar */
+    --color-secondary: #111315;      /* Preto stout */
+    --color-surface-dark: #1A1D21;   /* Carvão (seções escuras) */
+    --color-background: #F6F4EF;     /* Creme malte */
     --color-white: #FFFFFF;
     --color-text: #1E2022;
     --color-text-light: #5C6166;
-    --color-border: rgba(17, 19, 21, 0.08);
+    --color-border: #E4E1DA;
+    --color-success: #2E7D32;
 
-    --font-heading: 'Outfit', sans-serif;
-    --font-primary: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    /* Tipografia */
+    --font-heading: 'Outfit', system-ui, sans-serif;
+    --font-primary: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 
-    --spacing-sm: 0.5rem;
-    --spacing-md: 1rem;
-    --spacing-lg: 2rem;
-
-    --border-radius-sm: 10px;
-    --border-radius: 20px;
-    --border-radius-pill: 999px;
-
-    --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
-    --shadow-soft: 0 10px 30px -10px rgba(17, 19, 21, 0.06);
-    --shadow-hover: 0 24px 48px -12px rgba(17, 19, 21, 0.14);
+    /* Medidas */
+    --container: 1200px;
+    --gutter: 1.5rem;
+    --radius: 4px;
 }
 
 /* ==========================================================================
-   RESET CSS BASE
+   RESET E BASE
    ========================================================================== */
 *, *::before, *::after {
     box-sizing: border-box;
@@ -48,7 +38,7 @@
 
 html {
     scroll-behavior: smooth;
-    scroll-padding-top: 6rem;
+    scroll-padding-top: 5.5rem; /* o cabeçalho fixo não cobre o título da seção */
 }
 
 body {
@@ -57,12 +47,13 @@ body {
     color: var(--color-text);
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
-    overflow-x: hidden;
 }
 
 h1, h2, h3, .cart__title, .footer__title {
     font-family: var(--font-heading);
-    letter-spacing: -0.02em;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.15;
 }
 
 img {
@@ -71,27 +62,42 @@ img {
 }
 
 a {
-    text-decoration: none;
     color: inherit;
+    text-decoration: none;
 }
 
 ul {
     list-style: none;
 }
 
+button,
+input {
+    font: inherit;
+}
+
+/* Garante que o atributo "hidden" sempre esconde, mesmo em elementos com display definido */
 [hidden] {
     display: none !important;
 }
 
+/* Foco visível para quem navega pelo teclado */
 :focus-visible {
-    outline: 2px solid var(--color-primary);
-    outline-offset: 4px;
+    outline: 2px solid var(--color-secondary);
+    outline-offset: 3px;
+}
+
+.topbar :focus-visible,
+.hero :focus-visible,
+.newsletter :focus-visible,
+.footer :focus-visible {
+    outline-color: var(--color-white);
 }
 
 @media (prefers-reduced-motion: reduce) {
     html {
         scroll-behavior: auto;
     }
+
     *, *::before, *::after {
         transition-duration: 0.01ms !important;
         animation-duration: 0.01ms !important;
@@ -99,7 +105,7 @@ ul {
 }
 
 /* ==========================================================================
-   UTILITÁRIOS PARA ACESSIBILIDADE (WCAG 2.2)
+   ACESSIBILIDADE
    ========================================================================== */
 .sr-only {
     position: absolute;
@@ -115,15 +121,15 @@ ul {
 
 .skip-link {
     position: absolute;
-    top: -50px;
+    top: -60px;
     left: 1rem;
+    z-index: 200;
+    padding: 0.75rem 1.25rem;
+    border-radius: var(--radius);
     background: var(--color-secondary);
     color: var(--color-white);
-    padding: 0.75rem 1.25rem;
-    border-radius: var(--border-radius-sm);
-    z-index: 200;
     font-weight: 600;
-    transition: top 0.3s var(--ease-out-expo);
+    transition: top 0.2s ease;
 }
 
 .skip-link:focus {
@@ -131,26 +137,20 @@ ul {
 }
 
 /* ==========================================================================
-   COMPONENTES GLOBAIS (Botões em Formato Pílula Clean)
+   BOTÕES
    ========================================================================== */
 .btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 0.85rem 1.75rem;
-    border-radius: var(--border-radius-pill);
-    font-family: inherit;
+    padding: 0.8rem 1.5rem;
+    border: 1px solid transparent;
+    border-radius: var(--radius);
     font-size: 0.95rem;
-    font-weight: 700;
-    letter-spacing: 0.01em;
+    font-weight: 600;
     text-align: center;
     cursor: pointer;
-    border: 1.5px solid transparent;
-    transition: all 0.35s var(--ease-out-expo);
-}
-
-.btn:active {
-    transform: scale(0.96);
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
 .btn:disabled {
@@ -161,51 +161,58 @@ ul {
 .btn--primary {
     background-color: var(--color-primary);
     color: var(--color-on-primary);
-    box-shadow: 0 4px 14px rgba(224, 138, 43, 0.25);
 }
 
 .btn--primary:hover {
     background-color: var(--color-primary-light);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(224, 138, 43, 0.35);
 }
 
 .btn--secondary {
     background-color: transparent;
+    border-color: var(--color-secondary);
     color: var(--color-secondary);
-    border-color: rgba(17, 19, 21, 0.2);
 }
 
 .btn--secondary:hover {
     background-color: var(--color-secondary);
-    border-color: var(--color-secondary);
     color: var(--color-white);
 }
 
+/* Botão de contorno para fundos escuros */
+.btn--ghost {
+    background-color: transparent;
+    border-color: rgba(255, 255, 255, 0.4);
+    color: var(--color-white);
+}
+
+.btn--ghost:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: var(--color-white);
+}
+
 /* ==========================================================================
-   VERIFICAÇÃO DE IDADE (Modal com Blur Profundo)
+   VERIFICAÇÃO DE IDADE (Dialog)
    ========================================================================== */
 .age-gate {
-    margin: auto;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: var(--border-radius);
-    padding: 3rem 2.25rem;
-    width: min(92vw, 440px);
-    text-align: center;
+    margin: auto; /* o reset zera a margem que centraliza o dialog */
+    width: min(92vw, 420px);
+    padding: 2.5rem 2rem;
+    border: none;
+    border-radius: var(--radius);
     background-color: var(--color-white);
     color: var(--color-text);
-    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.45);
+    text-align: center;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
 }
 
 .age-gate::backdrop {
-    background-color: rgba(17, 19, 21, 0.85);
-    backdrop-filter: blur(12px);
+    background-color: rgba(17, 19, 21, 0.9);
 }
 
 .age-gate__title {
-    font-size: 1.85rem;
-    color: var(--color-secondary);
     margin-bottom: 0.75rem;
+    font-size: 1.6rem;
+    color: var(--color-secondary);
 }
 
 .age-gate__title:focus {
@@ -213,8 +220,8 @@ ul {
 }
 
 .age-gate__description {
-    color: var(--color-text-light);
     margin-bottom: 2rem;
+    color: var(--color-text-light);
 }
 
 .age-gate__actions {
@@ -225,36 +232,44 @@ ul {
 }
 
 /* ==========================================================================
-   HEADER (Efeito Vidro Fosco / Glassmorphism)
+   BARRA DE AVISOS
+   ========================================================================== */
+.topbar {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.25rem 2rem;
+    padding: 0.55rem var(--gutter);
+    background-color: var(--color-secondary);
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 0.8rem;
+    font-weight: 500;
+    text-align: center;
+}
+
+/* ==========================================================================
+   CABEÇALHO
    ========================================================================== */
 .header {
-    background-color: rgba(247, 245, 240, 0.82);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border-bottom: 1px solid var(--color-border);
     position: sticky;
     top: 0;
     z-index: 50;
-    transition: background-color 0.3s ease;
+    background-color: var(--color-white);
+    border-bottom: 1px solid var(--color-border);
 }
 
 .header__container {
-    max-width: 1280px;
-    margin: 0 auto;
-    padding: 1rem 1.5rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: var(--spacing-md);
+    gap: 1rem;
+    max-width: var(--container);
+    margin: 0 auto;
+    padding: 0.9rem var(--gutter);
 }
 
 .header__logo-img {
     height: auto;
-    transition: opacity 0.2s ease;
-}
-
-.header__logo-link:hover .header__logo-img {
-    opacity: 0.8;
 }
 
 .nav__list {
@@ -263,26 +278,25 @@ ul {
 }
 
 .nav__link {
-    font-size: 0.95rem;
-    font-weight: 600;
-    color: var(--color-text-light);
     position: relative;
     padding: 0.25rem 0;
-    transition: color 0.3s ease;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--color-text-light);
+    transition: color 0.2s ease;
 }
 
-/* Linha animada embaixo do link no menu */
 .nav__link::after {
     content: '';
     position: absolute;
-    bottom: -2px;
     left: 0;
+    bottom: -2px;
     width: 100%;
     height: 2px;
     background-color: var(--color-primary);
     transform: scaleX(0);
-    transform-origin: right;
-    transition: transform 0.35s var(--ease-out-expo);
+    transform-origin: left;
+    transition: transform 0.25s ease;
 }
 
 .nav__link:hover,
@@ -293,344 +307,296 @@ ul {
 .nav__link:hover::after,
 .nav__link[aria-current="page"]::after {
     transform: scaleX(1);
-    transform-origin: left;
 }
 
 .header__cart-btn {
-    position: relative;
-    background-color: var(--color-white);
-    border: 1px solid var(--color-border);
-    border-radius: var(--border-radius-pill);
-    font-family: inherit;
-    font-size: 1rem;
-    cursor: pointer;
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.5rem 1rem;
+    padding: 0.5rem 0.85rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background-color: var(--color-white);
     color: var(--color-secondary);
-    box-shadow: var(--shadow-soft);
-    transition: transform 0.3s var(--ease-out-expo), border-color 0.3s ease;
+    cursor: pointer;
+    transition: border-color 0.2s ease;
 }
 
 .header__cart-btn:hover {
-    transform: translateY(-2px);
-    border-color: var(--color-primary);
+    border-color: var(--color-secondary);
 }
 
 .header__cart-count {
     min-width: 1.4rem;
     height: 1.4rem;
-    padding: 0 0.4rem;
-    border-radius: var(--border-radius-pill);
+    padding: 0 0.35rem;
+    border-radius: 2px;
     background-color: var(--color-primary);
     color: var(--color-on-primary);
     font-size: 0.8rem;
-    font-weight: 800;
+    font-weight: 700;
     line-height: 1.4rem;
     text-align: center;
 }
 
 /* ==========================================================================
-   SEÇÃO HERO (Visual Imersivo com Luz Âmbar Difusa)
+   HERO
    ========================================================================== */
 .hero {
-    position: relative;
-    background: radial-gradient(circle at 50% 0%, #2B2118 0%, var(--color-secondary) 70%);
+    background-color: var(--color-secondary);
     color: var(--color-white);
-    text-align: center;
-    padding: clamp(5rem, 12vw, 9rem) 1.5rem;
-    overflow: hidden;
 }
 
 .hero__content {
-    max-width: 780px;
+    max-width: var(--container);
     margin: 0 auto;
-    position: relative;
-    z-index: 1;
+    padding: clamp(4.5rem, 10vw, 8rem) var(--gutter);
 }
 
 .hero__title {
-    font-size: clamp(2.4rem, 5.5vw, 4.2rem);
-    font-weight: 800;
-    margin-bottom: 1.25rem;
-    color: var(--color-white);
-    line-height: 1.08;
+    max-width: 17ch;
+    margin-bottom: 1.5rem;
+    font-size: clamp(2.5rem, 5.5vw, 4.25rem);
+    font-weight: 700;
+    line-height: 1.05;
 }
 
 .hero__subtitle {
-    font-size: clamp(1.05rem, 2vw, 1.25rem);
+    max-width: 48ch;
     margin-bottom: 2.5rem;
-    color: rgba(255, 255, 255, 0.78);
-    max-width: 560px;
-    margin-left: auto;
-    margin-right: auto;
+    font-size: clamp(1.05rem, 1.6vw, 1.2rem);
+    color: rgba(255, 255, 255, 0.75);
+}
+
+.hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
 }
 
 /* ==========================================================================
-   FILTROS POR ESTILO (Pílulas Minimalistas Flutuantes)
+   VITRINE
    ========================================================================== */
-.filters {
-    max-width: 1000px;
-    margin: -2.25rem auto 0;
-    padding: 0 1.5rem;
-    position: relative;
-    z-index: 10;
+.showcase {
+    max-width: var(--container);
+    margin: 0 auto;
+    padding: 5rem var(--gutter);
 }
 
-.filters__form {
-    background-color: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(12px);
-    border: 1px solid var(--color-border);
-    border-radius: var(--border-radius);
-    padding: 1.5rem 2rem;
-    text-align: center;
-    box-shadow: var(--shadow-soft);
+.showcase__header {
+    margin-bottom: 2rem;
+}
+
+.showcase__title {
+    margin-bottom: 0.5rem;
+    font-size: clamp(1.9rem, 3.5vw, 2.5rem);
+    color: var(--color-secondary);
+}
+
+.showcase__intro {
+    max-width: 52ch;
+    color: var(--color-text-light);
+}
+
+/* ---------- Filtros: barra simples acima dos produtos ---------- */
+.filters {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem 2rem;
+    margin-bottom: 2rem;
+    padding: 1rem 0;
+    border-top: 1px solid var(--color-border);
+    border-bottom: 1px solid var(--color-border);
 }
 
 .filters__fieldset {
     border: none;
-    margin-bottom: 1.25rem;
 }
 
+/* A legenda continua disponível para leitores de tela */
 .filters__legend {
-    font-size: 0.85rem;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    font-weight: 700;
-    color: var(--color-text-light);
-    margin: 0 auto 1rem;
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
 }
 
 .filters__options {
     display: flex;
     flex-wrap: wrap;
-    justify-content: center;
-    gap: 0.6rem;
+    gap: 0.5rem;
 }
 
 .filters__label {
+    position: relative;
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.55rem 1.25rem;
-    border: 1.5px solid var(--color-border);
-    border-radius: var(--border-radius-pill);
+    gap: 0.4rem;
+    padding: 0.45rem 0.95rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background-color: var(--color-white);
     font-size: 0.9rem;
-    font-weight: 600;
-    color: var(--color-text);
+    font-weight: 500;
     cursor: pointer;
     user-select: none;
-    transition: all 0.25s var(--ease-out-expo);
+    transition: border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease;
 }
 
 .filters__label:hover {
-    border-color: var(--color-primary);
-    transform: translateY(-1px);
-}
-
-/* Quando selecionado, vira uma pílula escura moderna */
-.filters__label:has(.filters__checkbox:checked) {
-    background-color: var(--color-secondary);
     border-color: var(--color-secondary);
-    color: var(--color-white);
-    box-shadow: 0 6px 16px rgba(17, 19, 21, 0.15);
 }
 
+/* Checkbox escondido visualmente, mas acessível pelo teclado */
 .filters__checkbox {
-    appearance: none;
-    width: 0.65rem;
-    height: 0.65rem;
-    border-radius: 50%;
-    border: 1.5px solid currentColor;
-    transition: background-color 0.2s ease, transform 0.2s ease;
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
 }
 
-.filters__checkbox:checked {
-    background-color: var(--color-primary);
-    border-color: var(--color-primary);
-    transform: scale(1.2);
+.filters__label:has(.filters__checkbox:focus-visible) {
+    outline: 2px solid var(--color-secondary);
+    outline-offset: 3px;
 }
 
-.filters__actions {
+/* Selecionado: fundo escuro e um ✓ (não depende só da cor) */
+.filters__label:has(.filters__checkbox:checked) {
+    border-color: var(--color-secondary);
+    background-color: var(--color-secondary);
+    color: var(--color-white);
+}
+
+.filters__label:has(.filters__checkbox:checked)::before {
+    content: '✓';
+    font-size: 0.8rem;
+}
+
+.filters__meta {
     display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 0.75rem;
+    align-items: center;
+    gap: 1.25rem;
 }
 
 .filters__status {
-    margin-top: 0.85rem;
     font-size: 0.85rem;
     color: var(--color-text-light);
 }
 
-/* ==========================================================================
-   VITRINE DE PRODUTOS (Carrossel Deslizante com Scroll-Snap)
-   ========================================================================== */
-.showcase {
-    max-width: 1360px;
-    margin: 4.5rem auto;
-    padding: 0 1.5rem;
-}
-
-.showcase__title {
-    text-align: left;
-    font-size: clamp(2rem, 4vw, 2.75rem);
-    margin-bottom: 0.5rem;
+.filters__clear {
+    padding: 0.25rem 0;
+    border: none;
+    background: none;
+    font-size: 0.85rem;
+    font-weight: 600;
     color: var(--color-secondary);
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 1rem;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
 }
 
-/* Dica visual sutil indicando que a vitrine desliza */
-.showcase__title::after {
-    content: 'Deslize para explorar →';
-    font-family: var(--font-primary);
-    font-size: 0.9rem;
-    font-weight: 500;
-    color: var(--color-text-light);
-    letter-spacing: 0;
+.filters__clear:hover {
+    color: var(--color-primary-text);
 }
 
-/* Esteira horizontal suave */
+/* ---------- Grade de produtos ---------- */
 .showcase__grid {
     display: grid;
-    grid-auto-flow: column;
-    grid-auto-columns: clamp(285px, 28vw, 340px);
-    gap: 1.75rem;
-    overflow-x: auto;
-    overscroll-behavior-x: contain;
-    scroll-snap-type: x mandatory;
-    scroll-behavior: smooth;
-    padding: 1.5rem 0.25rem 2.5rem;
-    cursor: grab;
-    scrollbar-width: thin;
-    scrollbar-color: var(--color-primary) rgba(17, 19, 21, 0.06);
-}
-
-.showcase__grid:active {
-    cursor: grabbing;
-}
-
-.showcase__grid::-webkit-scrollbar {
-    height: 6px;
-}
-
-.showcase__grid::-webkit-scrollbar-track {
-    background: rgba(17, 19, 21, 0.05);
-    border-radius: var(--border-radius-pill);
-}
-
-.showcase__grid::-webkit-scrollbar-thumb {
-    background: var(--color-primary);
-    border-radius: var(--border-radius-pill);
+    grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+    gap: 1.5rem;
 }
 
 /* ==========================================================================
-   O CARTÃO DA CERVEJA (Micro-interações e Zoom Suave na Imagem)
+   CARTÃO DA CERVEJA
    ========================================================================== */
 .product-card {
-    scroll-snap-align: start;
-    background-color: var(--color-white);
-    border: 1px solid var(--color-border);
-    border-radius: var(--border-radius);
-    padding: 1.25rem;
-    text-align: left;
-    box-shadow: var(--shadow-soft);
-    transition: transform 0.5s var(--ease-out-expo), box-shadow 0.5s var(--ease-out-expo), border-color 0.3s ease;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background-color: var(--color-white);
+    transition: border-color 0.25s ease;
 }
 
 .product-card:hover {
-    transform: translateY(-8px);
-    box-shadow: var(--shadow-hover);
-    border-color: rgba(224, 138, 43, 0.35);
+    border-color: rgba(17, 19, 21, 0.35);
 }
 
-/* Moldura que segura o zoom da foto */
 .product-card__figure {
-    position: relative;
     overflow: hidden;
-    border-radius: calc(var(--border-radius) - 6px);
-    margin-bottom: 1.25rem;
-    background: linear-gradient(145deg, #f3f1ec, #e8e4dc);
-    aspect-ratio: 4 / 4.5;
+    aspect-ratio: 4 / 5;
+    background-color: #EFECE5;
 }
 
-/* A imagem desliza e aproxima suavemente quando passa o mouse no card */
 .product-card__img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.7s var(--ease-out-expo);
-    will-change: transform;
+    transition: transform 0.6s ease;
 }
 
 .product-card:hover .product-card__img {
-    transform: scale(1.08) translateY(-4px);
+    transform: scale(1.03);
 }
 
 .product-card__details {
     display: flex;
     flex-direction: column;
     flex: 1;
-    padding: 0 0.25rem;
+    padding: 1.25rem;
 }
 
+/* O estilo aparece como uma linha discreta acima do nome */
 .product-card__style {
-    order: -1; /* Coloca o estilo como uma etiqueta elegante acima do nome */
-    color: var(--color-primary-text);
-    font-size: 0.78rem;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
+    order: -1;
     margin-bottom: 0.25rem;
-    font-weight: 700;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-primary-text);
 }
 
 .product-card__name {
-    font-size: 1.45rem;
+    margin-bottom: 0.75rem;
+    font-size: 1.3rem;
     color: var(--color-secondary);
-    margin-bottom: 0.85rem;
-    line-height: 1.2;
 }
 
 .product-card__specs {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem;
-    font-size: 0.8rem;
     margin-bottom: 1.5rem;
-}
-
-.product-card__spec {
-    background-color: var(--color-background);
+    font-size: 0.85rem;
     color: var(--color-text-light);
-    padding: 0.3rem 0.65rem;
-    border-radius: var(--border-radius-pill);
-    font-weight: 600;
 }
 
 .product-card__spec abbr {
     text-decoration: none;
 }
 
+.product-card__spec + .product-card__spec::before {
+    content: '';
+    display: inline-block;
+    width: 1px;
+    height: 0.85em;
+    margin: 0 0.75rem;
+    background-color: var(--color-border);
+}
+
 .product-card__price-wrapper {
     margin-top: auto;
-    margin-bottom: 1rem;
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
+    margin-bottom: 0.85rem;
 }
 
 .product-card__price {
     font-family: var(--font-heading);
-    font-size: 1.75rem;
-    font-weight: 800;
+    font-size: 1.5rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
     color: var(--color-secondary);
 }
 
@@ -639,72 +605,68 @@ ul {
 }
 
 /* ==========================================================================
-   SOBRE & BENEFÍCIOS (Visual Editorial Clean)
+   SOBRE
    ========================================================================== */
 .about {
-    max-width: 1280px;
-    margin: 5rem auto;
-    padding: 0 1.5rem;
+    max-width: var(--container);
+    margin: 0 auto;
+    padding: 0 var(--gutter);
 }
 
 .about__content {
-    background-color: var(--color-secondary);
-    color: var(--color-white);
-    border-radius: var(--border-radius);
-    padding: clamp(3rem, 6vw, 5rem) clamp(1.5rem, 5vw, 4rem);
-    text-align: center;
-    box-shadow: var(--shadow-soft);
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 1.5rem 4rem;
+    padding: 5rem 0;
+    border-top: 1px solid var(--color-border);
 }
 
 .about__title {
-    font-size: clamp(1.8rem, 3.5vw, 2.5rem);
-    color: var(--color-primary);
-    margin-bottom: 1.25rem;
+    font-size: clamp(1.75rem, 3vw, 2.25rem);
+    color: var(--color-secondary);
 }
 
 .about__text {
-    font-size: 1.125rem;
-    color: rgba(255, 255, 255, 0.82);
-    max-width: 680px;
-    margin: 0 auto;
+    max-width: 62ch;
+    font-size: 1.1rem;
     line-height: 1.75;
+    color: var(--color-text-light);
 }
 
+/* ==========================================================================
+   BENEFÍCIOS
+   ========================================================================== */
 .benefits {
-    max-width: 1280px;
-    margin: 4rem auto;
-    padding: 0 1.5rem;
+    max-width: var(--container);
+    margin: 0 auto;
+    padding: 0 var(--gutter) 5rem;
 }
 
 .benefits__list {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 1.5rem;
+    grid-template-columns: repeat(3, 1fr);
+    border-top: 1px solid var(--color-border);
+    border-bottom: 1px solid var(--color-border);
 }
 
 .benefits__item {
-    background-color: var(--color-white);
-    border: 1px solid var(--color-border);
-    border-radius: var(--border-radius);
-    padding: 2rem 1.75rem;
-    text-align: left;
-    box-shadow: var(--shadow-soft);
-    transition: transform 0.35s var(--ease-out-expo);
+    padding: 2rem 2rem 2rem 0;
 }
 
-.benefits__item:hover {
-    transform: translateY(-4px);
+.benefits__item + .benefits__item {
+    padding-left: 2rem;
+    border-left: 1px solid var(--color-border);
 }
 
 .benefits__subtitle {
-    font-size: 1.25rem;
+    margin-bottom: 0.4rem;
+    font-size: 1.15rem;
     color: var(--color-secondary);
-    margin-bottom: 0.5rem;
 }
 
 .benefits__desc {
-    color: var(--color-text-light);
     font-size: 0.95rem;
+    color: var(--color-text-light);
 }
 
 /* ==========================================================================
@@ -713,23 +675,24 @@ ul {
 .newsletter {
     background-color: var(--color-surface-dark);
     color: var(--color-white);
-    padding: 5rem 1.5rem;
 }
 
 .newsletter__container {
-    max-width: 580px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem 4rem;
+    align-items: center;
+    max-width: var(--container);
     margin: 0 auto;
-    text-align: center;
+    padding: 4.5rem var(--gutter);
 }
 
 .newsletter__title {
-    font-size: 2rem;
-    color: var(--color-white);
-    margin-bottom: 0.75rem;
+    margin-bottom: 0.5rem;
+    font-size: clamp(1.6rem, 3vw, 2rem);
 }
 
 .newsletter__desc {
-    margin-bottom: 2rem;
     color: rgba(255, 255, 255, 0.75);
 }
 
@@ -737,27 +700,25 @@ ul {
     display: flex;
     flex-wrap: wrap;
     gap: 0.75rem;
-    justify-content: center;
 }
 
 .newsletter__input {
-    flex: 1 1 240px;
-    padding: 0.85rem 1.25rem;
-    border: 1.5px solid rgba(255, 255, 255, 0.15);
-    background-color: rgba(255, 255, 255, 0.06);
+    flex: 1 1 220px;
+    padding: 0.8rem 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: var(--radius);
+    background-color: transparent;
     color: var(--color-white);
-    border-radius: var(--border-radius-pill);
-    font-family: inherit;
-    font-size: 1rem;
 }
 
 .newsletter__input::placeholder {
-    color: rgba(255, 255, 255, 0.45);
+    color: rgba(255, 255, 255, 0.5);
 }
 
 .newsletter__message {
-    margin-top: 1rem;
+    grid-column: 2;
     min-height: 1.5rem;
+    font-size: 0.9rem;
 }
 
 /* ==========================================================================
@@ -766,23 +727,22 @@ ul {
 .footer {
     background-color: var(--color-secondary);
     color: rgba(255, 255, 255, 0.75);
-    padding-top: 4rem;
 }
 
 .footer__container {
-    max-width: 1280px;
-    margin: 0 auto;
-    padding: 0 1.5rem 3rem;
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
-    gap: 2.5rem;
+    gap: 2rem;
+    max-width: var(--container);
+    margin: 0 auto;
+    padding: 4rem var(--gutter) 3rem;
 }
 
 .footer__title {
-    font-size: 1.4rem;
-    color: var(--color-white);
     margin-bottom: 0.75rem;
+    font-size: 1.3rem;
+    color: var(--color-white);
 }
 
 .footer__address {
@@ -792,12 +752,14 @@ ul {
 
 .footer__link,
 .footer__social-link {
+    text-underline-offset: 3px;
     transition: color 0.2s ease;
 }
 
 .footer__link:hover,
 .footer__social-link:hover {
     color: var(--color-primary);
+    text-decoration: underline;
 }
 
 .footer__social-list {
@@ -807,40 +769,40 @@ ul {
 }
 
 .footer__legal {
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
-    padding: 1.75rem 1.5rem;
-    text-align: center;
+    padding: 1.5rem var(--gutter);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
     font-size: 0.85rem;
-    color: rgba(255, 255, 255, 0.5);
+    text-align: center;
+    color: rgba(255, 255, 255, 0.55);
 }
 
 .footer__warning {
     display: block;
-    margin-bottom: 0.35rem;
+    margin-bottom: 0.25rem;
     font-weight: 600;
-    color: rgba(255, 255, 255, 0.75);
+    color: rgba(255, 255, 255, 0.8);
 }
 
 /* ==========================================================================
-   CARRINHO LATERAL (Entrada Deslizante Suave + Cupom)
+   CARRINHO (painel lateral)
    ========================================================================== */
 .cart {
     position: fixed;
     inset: 0;
-    margin: 0 0 0 auto;
     width: min(100%, 440px);
     height: 100%;
     max-width: 100%;
     max-height: 100%;
-    border: none;
+    margin: 0 0 0 auto;
     padding: 0;
+    border: none;
     background-color: var(--color-white);
     color: var(--color-text);
-    box-shadow: -20px 0 50px rgba(0, 0, 0, 0.25);
-    transform: translateX(0);
-    transition: transform 0.4s var(--ease-out-expo);
+    box-shadow: -12px 0 40px rgba(0, 0, 0, 0.2);
+    transition: transform 0.35s ease;
 }
 
+/* Entrada deslizante */
 @starting-style {
     .cart[open] {
         transform: translateX(100%);
@@ -849,7 +811,6 @@ ul {
 
 .cart::backdrop {
     background-color: rgba(17, 19, 21, 0.55);
-    backdrop-filter: blur(4px);
 }
 
 .cart__panel {
@@ -862,31 +823,30 @@ ul {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1.5rem;
+    padding: 1.25rem 1.5rem;
     border-bottom: 1px solid var(--color-border);
 }
 
 .cart__title {
-    font-size: 1.5rem;
+    font-size: 1.4rem;
     color: var(--color-secondary);
 }
 
 .cart__close {
     width: 2.5rem;
     height: 2.5rem;
-    background-color: var(--color-background);
     border: none;
-    border-radius: 50%;
-    font-size: 1.5rem;
+    border-radius: var(--radius);
+    background: none;
+    font-size: 1.6rem;
     line-height: 1;
     color: var(--color-secondary);
     cursor: pointer;
-    transition: transform 0.2s ease, background-color 0.2s ease;
+    transition: background-color 0.2s ease;
 }
 
 .cart__close:hover {
-    background-color: var(--color-primary);
-    transform: rotate(90deg);
+    background-color: var(--color-background);
 }
 
 .cart__empty {
@@ -911,7 +871,7 @@ ul {
 }
 
 .cart__item-name {
-    font-weight: 700;
+    font-weight: 600;
     color: var(--color-secondary);
 }
 
@@ -923,54 +883,65 @@ ul {
 .cart__item-controls {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.25rem;
 }
 
 .cart__qty {
-    min-width: 1.75rem;
+    min-width: 2rem;
+    font-weight: 600;
     text-align: center;
-    font-weight: 700;
 }
 
 .cart__qty-btn {
-    width: 2rem;
-    height: 2rem;
+    width: 2.25rem;
+    height: 2.25rem;
     border: 1px solid var(--color-border);
-    border-radius: 50%;
-    background-color: var(--color-background);
+    border-radius: var(--radius);
+    background-color: var(--color-white);
     font-size: 1.1rem;
     line-height: 1;
     color: var(--color-secondary);
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
 
 .cart__qty-btn:hover {
+    border-color: var(--color-secondary);
     background-color: var(--color-secondary);
     color: var(--color-white);
 }
 
+.cart__item-subtotal,
+.cart__discount,
+.cart__total strong {
+    font-variant-numeric: tabular-nums;
+}
+
 .cart__item-subtotal {
-    font-weight: 700;
+    font-weight: 600;
     color: var(--color-secondary);
 }
 
 .cart__remove {
     justify-self: end;
-    background: none;
-    border: none;
     padding: 0.25rem 0;
-    font-family: inherit;
-    font-size: 0.8rem;
+    border: none;
+    background: none;
+    font-size: 0.85rem;
     color: var(--color-text-light);
     text-decoration: underline;
+    text-underline-offset: 3px;
     cursor: pointer;
+}
+
+.cart__remove:hover {
+    color: var(--color-text);
 }
 
 .cart__footer {
     display: grid;
-    gap: 0.85rem;
-    padding: 1.5rem;
+    gap: 0.75rem;
+    padding: 1.25rem 1.5rem 1.5rem;
     border-top: 1px solid var(--color-border);
     background-color: var(--color-background);
 }
@@ -983,31 +954,23 @@ ul {
 .cart__coupon-input {
     flex: 1;
     min-width: 0;
-    padding: 0.6rem 1rem;
-    border: 1.5px solid var(--color-border);
+    padding: 0.6rem 0.9rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
     background-color: var(--color-white);
-    border-radius: var(--border-radius-pill);
-    font-family: inherit;
     font-size: 0.9rem;
     text-transform: uppercase;
 }
 
 .cart__coupon-btn {
-    padding: 0.6rem 1.25rem;
+    padding: 0.6rem 1.1rem;
     font-size: 0.85rem;
 }
 
 .cart__coupon-msg {
+    min-height: 1.2rem;
     font-size: 0.85rem;
     font-weight: 600;
-    min-height: 1.2rem;
-}
-
-.cart__discount {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.95rem;
-    color: #2e7d32;
 }
 
 .cart__shipping {
@@ -1015,23 +978,40 @@ ul {
     color: var(--color-text-light);
 }
 
+.cart__discount {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.95rem;
+    color: var(--color-success);
+}
+
 .cart__total {
     display: flex;
     justify-content: space-between;
     align-items: baseline;
-    font-size: 1.1rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--color-border);
+    font-size: 1.05rem;
 }
 
 .cart__total strong {
     font-family: var(--font-heading);
-    font-size: 1.75rem;
+    font-size: 1.6rem;
     color: var(--color-secondary);
 }
 
 /* ==========================================================================
-   RESPONSIVO (Celulares)
+   RESPONSIVO
    ========================================================================== */
 @media (max-width: 720px) {
+    :root {
+        --gutter: 1.25rem;
+    }
+
+    .topbar__text--extra {
+        display: none;
+    }
+
     .header__container {
         flex-wrap: wrap;
     }
@@ -1042,21 +1022,58 @@ ul {
     }
 
     .nav__list {
-        justify-content: center;
         flex-wrap: wrap;
-        gap: 0.5rem 1.25rem;
+        justify-content: center;
+        gap: 0.4rem 1.25rem;
+    }
+
+    .nav__link {
         font-size: 0.9rem;
     }
 
-    .filters {
-        margin-top: 1.5rem;
+    .showcase {
+        padding: 3.5rem var(--gutter);
     }
 
-    .showcase__grid {
-        grid-auto-columns: 82vw;
+    .filters {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .about__content {
+        grid-template-columns: 1fr;
+        padding: 3.5rem 0;
+    }
+
+    .benefits {
+        padding-bottom: 3.5rem;
+    }
+
+    .benefits__list {
+        grid-template-columns: 1fr;
+    }
+
+    .benefits__item,
+    .benefits__item + .benefits__item {
+        padding: 1.5rem 0;
+        border-left: none;
+    }
+
+    .benefits__item + .benefits__item {
+        border-top: 1px solid var(--color-border);
+    }
+
+    .newsletter__container {
+        grid-template-columns: 1fr;
+        padding: 3.5rem var(--gutter);
+    }
+
+    .newsletter__message {
+        grid-column: 1;
     }
 
     .footer__container {
         flex-direction: column;
+        padding-top: 3rem;
     }
 }
