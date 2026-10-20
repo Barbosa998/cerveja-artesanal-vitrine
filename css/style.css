@@ -150,3 +150,121 @@ ul {
     gap: 0.5rem;
     color: var(--color-secondary);
 }
+/* ==========================================================================
+   SECÇÃO HERO (Destaque Principal)
+   ========================================================================== */
+.hero {
+    background-color: var(--color-secondary);
+    color: var(--color-white);
+    text-align: center;
+    padding: 6rem 1rem;
+    /* Aqui futuramente podemos colocar uma imagem de fundo de barris de chopp */
+}
+
+.hero__title {
+    font-size: clamp(2rem, 5vw, 3.5rem); /* Aumenta e diminui suavemente com o ecrã */
+    margin-bottom: 1rem;
+    color: var(--color-primary);
+    line-height: 1.2;
+}
+
+.hero__subtitle {
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+    color: #e0e0e0;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* ==========================================================================
+   VITRINE DE PRODUTOS (CSS Grid)
+   ========================================================================== */
+.showcase {
+    max-width: 1200px;
+    margin: 4rem auto;
+    padding: 0 var(--spacing-md);
+}
+
+.showcase__title {
+    text-align: center;
+    font-size: 2.5rem;
+    margin-bottom: 3rem;
+    color: var(--color-secondary);
+}
+
+/* A Mágica do Grid Responsivo */
+.showcase__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+}
+
+/* ==========================================================================
+   O CARTÃO DA CERVEJA (Componente)
+   ========================================================================== */
+.product-card {
+    background-color: var(--color-white);
+    border: 1px solid #eaeaea;
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    text-align: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Efeito de levitar ao passar o rato */
+.product-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 20px rgba(0, 0, 0, 0.1);
+}
+
+.product-card__img {
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--border-radius);
+    margin-bottom: 1.5rem;
+    /* Se a foto falhar, mostramos uma cor de fundo suave */
+    background-color: #f5f5f5; 
+}
+
+.product-card__name {
+    font-size: 1.4rem;
+    color: var(--color-secondary);
+    margin-bottom: 0.2rem;
+}
+
+.product-card__style {
+    color: var(--color-text-light);
+    font-size: 0.95rem;
+    margin-bottom: 1.5rem;
+    font-weight: 600;
+}
+
+.product-card__specs {
+    display: flex;
+    justify-content: center;
+    gap: 1.2rem;
+    font-size: 0.85rem;
+    background-color: var(--color-background);
+    padding: 0.5rem;
+    border-radius: 4px;
+    margin-bottom: 1.5rem;
+}
+
+.product-card__price-wrapper {
+    margin-top: auto; /* Empurra o preço e o botão para o fundo do cartão */
+    margin-bottom: 1.5rem;
+}
+
+.product-card__price {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: var(--color-primary-dark);
+}
+
+.product-card__add-btn {
+    width: 100%;
+}
