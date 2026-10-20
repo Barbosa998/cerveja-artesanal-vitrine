@@ -4,6 +4,7 @@
  * - Controle do Dialog de verificação de idade
  * - Interatividade dos Filtros
  * - Lógica do Carrinho de Compras (salvo no localStorage) e Cupom de Desconto
+ * - Expõe window.vitrine.addToCart para a página de produto
  * - Finalização do pedido via WhatsApp
  * - Newsletter (opcional, só aparece se houver um endpoint configurado)
  */
@@ -212,12 +213,12 @@
         }
 
         /* ---------- Ações ---------- */
-        function addItem(product) {
+        function addItem(product, qty = 1) {
             const existing = cart.find((item) => item.id === product.id);
             if (existing) {
-                existing.qty = Math.min(existing.qty + 1, MAX_QTY);
+                existing.qty = Math.min(existing.qty + qty, MAX_QTY);
             } else {
-                cart.push({ ...product, qty: 1 });
+                cart.push({ ...product, qty: Math.min(qty, MAX_QTY) });
             }
             saveCart();
             render();
@@ -469,6 +470,9 @@
         });
 
         render();
+
+        // Permite que outras páginas/scripts (ex.: produto.js) adicionem itens ao carrinho.
+        window.vitrine = { addToCart: addItem };
     }
 
     /* ======================================================================

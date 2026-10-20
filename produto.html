@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cerveja | Cervejaria Artesanal</title>
+    <meta name="description" content="Conheça as cervejas artesanais da nossa fábrica em Maringá - PR.">
+
+    <!-- Estas tags são preenchidas pelo js/produto.js com os dados de cada cerveja -->
+    <meta property="og:title" content="Cervejaria Artesanal">
+    <meta property="og:description" content="Cervejas artesanais locais de alta qualidade.">
+    <meta property="og:type" content="product">
+    <meta property="og:url" content="https://barbosa998.github.io/cerveja-artesanal-vitrine/produto.html">
+    <meta property="og:image" content="https://barbosa998.github.io/cerveja-artesanal-vitrine/assets/img/beer-ipa.jpg">
+
+    <!-- Favicon -->
+    <link rel="icon" href="assets/img/favicon.ico" sizes="any">
+    <link rel="icon" href="assets/img/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
+
+    <!-- Fontes: Outfit (títulos) + Plus Jakarta Sans (texto) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Skip link para acessibilidade (teclado) -->
+    <a href="#conteudo-principal" class="skip-link">Ir para o conteúdo principal</a>
+
+    <dialog id="age-gate" class="age-gate" aria-labelledby="age-gate-title" aria-describedby="age-gate-desc">
+        <div class="age-gate__content">
+            <h2 id="age-gate-title" class="age-gate__title" tabindex="-1">Você tem 18 anos ou mais?</h2>
+            <p id="age-gate-desc" class="age-gate__description">O acesso a este site é restrito a maiores de idade.</p>
+            <form method="dialog" class="age-gate__actions" id="age-gate-form">
+                <button type="button" class="btn btn--secondary" id="btn-no">Não</button>
+                <button type="submit" class="btn btn--primary" id="btn-yes" autofocus>Sim, sou maior de 18</button>
+            </form>
+        </div>
+    </dialog>
+
+    <!-- Barra de avisos -->
+    <div class="topbar">
+        <p class="topbar__text">Frete grátis em compras acima de R$ 150,00</p>
+        <p class="topbar__text topbar__text--extra">Retirada na fábrica em Maringá - PR</p>
+    </div>
+
+    <header class="header">
+        <div class="header__container">
+            <!-- Logo -->
+            <a href="./" class="header__logo-link" aria-label="Página inicial da Cervejaria">
+                <img src="assets/img/logo-placeholder.svg" alt="Logo Cervejaria Artesanal" class="header__logo-img" width="150" height="50">
+            </a>
+
+            <!-- Navegação Principal -->
+            <nav class="nav" aria-label="Navegação principal">
+                <ul class="nav__list">
+                    <li class="nav__item"><a href="./" class="nav__link">Início</a></li>
+                    <li class="nav__item"><a href="index.html#vitrine" class="nav__link">Cervejas</a></li>
+                    <li class="nav__item"><a href="index.html#estilos" class="nav__link">Estilos</a></li>
+                    <li class="nav__item"><a href="index.html#sobre" class="nav__link">Sobre</a></li>
+                    <li class="nav__item"><a href="#contato" class="nav__link">Contato</a></li>
+                </ul>
+            </nav>
+
+            <!-- Carrinho -->
+            <button type="button" class="header__cart-btn" id="cart-toggle" aria-label="Abrir carrinho, 0 itens" aria-haspopup="dialog">
+                <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <circle cx="9" cy="20" r="1.5" fill="currentColor"/>
+                    <circle cx="18" cy="20" r="1.5" fill="currentColor"/>
+                    <path d="M2 3h3l2.6 12.2a1 1 0 0 0 1 .8h9.2a1 1 0 0 0 1-.76L21 7H6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span class="header__cart-count" id="cart-count">0</span>
+            </button>
+        </div>
+    </header>
+
+    <main id="conteudo-principal" class="main-content">
+        <!-- Conteúdo montado pelo js/produto.js a partir de js/produtos.js -->
+        <div id="produto-root" class="product-root">
+            <noscript><p class="not-found__text">Ative o JavaScript para ver os detalhes desta cerveja.</p></noscript>
+        </div>
+    </main>
+
+    <footer id="contato" class="footer">
+        <div class="footer__container">
+            <!-- Informações Institucionais -->
+            <div class="footer__info">
+                <h2 class="footer__title">Cervejaria Artesanal</h2>
+                <address class="footer__address">
+                    <p>Maringá, PR - Brasil</p>
+                    <!-- TODO: troque pelos seus dados reais -->
+                    <p><a href="mailto:contato@cervejariaexemplo.com.br" class="footer__link">contato@cervejariaexemplo.com.br</a></p>
+                    <p><a href="tel:+5544999999999" class="footer__link">(44) 99999-9999</a></p>
+                </address>
+            </div>
+
+            <!-- Redes Sociais -->
+            <div class="footer__social">
+                <h3 class="footer__subtitle sr-only">Redes Sociais</h3>
+                <ul class="footer__social-list">
+                    <!-- TODO: troque o "#" pelos links reais dos seus perfis -->
+                    <li><a href="#" class="footer__social-link" aria-label="Siga-nos no Instagram">Instagram</a></li>
+                    <li><a href="#" class="footer__social-link" aria-label="Curta nossa página no Facebook">Facebook</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Aviso Legal -->
+        <div class="footer__legal">
+            <small class="footer__warning">Venda proibida para menores de 18 anos. Beba com moderação.</small>
+            <p class="footer__copyright">&copy; 2026 Cervejaria Artesanal. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+
+    <!-- Carrinho (painel lateral) -->
+    <dialog id="cart-dialog" class="cart" aria-labelledby="cart-title">
+        <div class="cart__panel">
+            <div class="cart__header">
+                <h2 id="cart-title" class="cart__title">Seu carrinho</h2>
+                <button type="button" class="cart__close" id="cart-close" aria-label="Fechar carrinho">&times;</button>
+            </div>
+
+            <p class="cart__empty" id="cart-empty">Seu carrinho está vazio. Escolha uma cerveja na vitrine para começar.</p>
+            <ul class="cart__items" id="cart-items"></ul>
+
+            <div class="cart__footer" id="cart-footer" hidden>
+                <div class="cart__coupon">
+                    <label for="cart-coupon-input" class="sr-only">Cupom de desconto</label>
+                    <input type="text" id="cart-coupon-input" class="cart__coupon-input" placeholder="Cupom de desconto" autocomplete="off">
+                    <button type="button" class="btn btn--secondary cart__coupon-btn" id="cart-coupon-apply">Aplicar</button>
+                </div>
+                <p class="cart__coupon-msg" id="cart-coupon-msg" role="status"></p>
+                <p class="cart__shipping" id="cart-shipping"></p>
+                <p class="cart__discount" id="cart-discount-row" hidden>
+                    <span>Cupom <strong id="cart-coupon-name"></strong></span>
+                    <span id="cart-discount"></span>
+                </p>
+                <p class="cart__total"><span>Total</span> <strong id="cart-total">R$ 0,00</strong></p>
+                <button type="button" class="btn btn--primary cart__checkout" id="cart-checkout">Finalizar pelo WhatsApp</button>
+                <button type="button" class="btn btn--secondary cart__clear" id="cart-clear">Esvaziar carrinho</button>
+            </div>
+        </div>
+    </dialog>
+
+    <!-- Avisos para leitores de tela (ex.: "Item adicionado") -->
+    <p class="sr-only" id="cart-status" role="status"></p>
+
+    <!-- JS: dados dos produtos, carrinho/idade (main.js) e montagem da página (produto.js) -->
+    <script src="js/produtos.js" defer></script>
+    <script src="js/main.js" defer></script>
+    <script src="js/produto.js" defer></script>
+</body>
+</html>
