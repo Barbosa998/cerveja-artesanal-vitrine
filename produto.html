@@ -5,15 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cerveja | Cervejaria Artesanal</title>
     <meta name="description" content="Conheça as cervejas artesanais da nossa fábrica em Maringá - PR.">
-
-    <!-- Estas tags são preenchidas pelo js/produto.js com os dados de cada cerveja -->
-    <meta property="og:title" content="Cervejaria Artesanal">
-    <meta property="og:description" content="Cervejas artesanais locais de alta qualidade.">
+    <meta property="og:title" content="Cerveja | Cervejaria Artesanal">
+    <meta property="og:description" content="Conheça as cervejas artesanais da nossa fábrica em Maringá - PR.">
     <meta property="og:type" content="product">
-    <meta property="og:url" content="https://barbosa998.github.io/cerveja-artesanal-vitrine/produto.html">
+    <meta property="og:url" content="https://barbosa998.github.io/cerveja-artesanal-vitrine/">
     <meta property="og:image" content="https://barbosa998.github.io/cerveja-artesanal-vitrine/assets/img/beer-ipa.jpg">
 
-    <!-- Favicon -->
     <link rel="icon" href="assets/img/favicon.ico" sizes="any">
     <link rel="icon" href="assets/img/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
@@ -65,15 +62,18 @@
                 </ul>
             </nav>
 
-            <!-- Carrinho -->
-            <button type="button" class="header__cart-btn" id="cart-toggle" aria-label="Abrir carrinho, 0 itens" aria-haspopup="dialog">
-                <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                    <circle cx="9" cy="20" r="1.5" fill="currentColor"/>
-                    <circle cx="18" cy="20" r="1.5" fill="currentColor"/>
-                    <path d="M2 3h3l2.6 12.2a1 1 0 0 0 1 .8h9.2a1 1 0 0 0 1-.76L21 7H6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                <span class="header__cart-count" id="cart-count">0</span>
-            </button>
+            <!-- Conta e carrinho -->
+            <div class="header__actions">
+                <a href="conta.html" class="header__account" id="account-link">Entrar</a>
+                <button type="button" class="header__cart-btn" id="cart-toggle" aria-label="Abrir carrinho, 0 itens" aria-haspopup="dialog">
+                    <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                        <circle cx="9" cy="20" r="1.5" fill="currentColor"/>
+                        <circle cx="18" cy="20" r="1.5" fill="currentColor"/>
+                        <path d="M2 3h3l2.6 12.2a1 1 0 0 0 1 .8h9.2a1 1 0 0 0 1-.76L21 7H6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span class="header__cart-count" id="cart-count">0</span>
+                </button>
+            </div>
         </div>
     </header>
 
@@ -111,6 +111,7 @@
         <!-- Aviso Legal -->
         <div class="footer__legal">
             <small class="footer__warning">Venda proibida para menores de 18 anos. Beba com moderação.</small>
+            <p class="footer__legal-links"><a href="privacidade.html" class="footer__link">Política de Privacidade</a></p>
             <p class="footer__copyright">&copy; 2026 Cervejaria Artesanal. Todos os direitos reservados.</p>
         </div>
     </footer>
@@ -139,8 +140,16 @@
                     <span id="cart-discount"></span>
                 </p>
                 <p class="cart__total"><span>Total</span> <strong id="cart-total">R$ 0,00</strong></p>
+                <p class="cart__notice" id="cart-notice" role="status"></p>
                 <button type="button" class="btn btn--primary cart__checkout" id="cart-checkout">Finalizar pelo WhatsApp</button>
                 <button type="button" class="btn btn--secondary cart__clear" id="cart-clear">Esvaziar carrinho</button>
+            </div>
+
+            <div class="cart__success" id="cart-success" hidden>
+                <h3 class="cart__success-title">Pedido <span id="cart-success-number"></span> registrado</h3>
+                <p class="cart__success-text">Falta só um passo: envie o pedido pelo WhatsApp para combinar o pagamento e a entrega. Você acompanha o status em &ldquo;Minha conta&rdquo;.</p>
+                <a href="#" class="btn btn--primary" id="cart-success-whatsapp" target="_blank" rel="noopener">Enviar pelo WhatsApp</a>
+                <a href="conta.html#pedidos" class="btn btn--secondary">Ver meus pedidos</a>
             </div>
         </div>
     </dialog>
@@ -148,8 +157,9 @@
     <!-- Avisos para leitores de tela (ex.: "Item adicionado") -->
     <p class="sr-only" id="cart-status" role="status"></p>
 
-    <!-- JS: dados dos produtos, carrinho/idade (main.js) e montagem da página (produto.js) -->
-    <script src="js/produtos.js" defer></script>
+        <script src="js/produtos.js" defer></script>
+    <script src="js/config.js" defer></script>
+    <script src="js/auth.js" defer></script>
     <script src="js/main.js" defer></script>
     <script src="js/produto.js" defer></script>
 </body>

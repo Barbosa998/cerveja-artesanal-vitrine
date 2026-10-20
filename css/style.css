@@ -1407,6 +1407,553 @@ input {
 }
 
 /* ==========================================================================
+   CABEÇALHO: ENTRAR / MINHA CONTA
+   ========================================================================== */
+.header__actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.header__account {
+    padding: 0.5rem 0.25rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--color-secondary);
+    text-underline-offset: 4px;
+}
+
+.header__account:hover,
+.header__account[aria-current="page"] {
+    text-decoration: underline;
+}
+
+.footer__legal-links {
+    margin-bottom: 0.75rem;
+}
+
+/* ==========================================================================
+   CARRINHO: AVISO E PEDIDO REGISTRADO
+   ========================================================================== */
+.cart__notice {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+.cart__notice:empty {
+    display: none;
+}
+
+.cart__notice-link {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    color: var(--color-primary-text);
+}
+
+.cart__success {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 0.9rem;
+    padding: 2rem 1.5rem;
+    overflow-y: auto;
+}
+
+.cart__success-title {
+    font-size: 1.5rem;
+    color: var(--color-secondary);
+}
+
+.cart__success-text {
+    margin-bottom: 0.5rem;
+    color: var(--color-text-light);
+}
+
+/* ==========================================================================
+   PÁGINA "MINHA CONTA"
+   ========================================================================== */
+.account {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 3rem var(--gutter) 5rem;
+}
+
+.account__loading {
+    padding: 4rem 0;
+    text-align: center;
+    color: var(--color-text-light);
+}
+
+.account__card {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 2rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background-color: var(--color-white);
+}
+
+.account__title {
+    margin-bottom: 0.5rem;
+    font-size: 1.8rem;
+    color: var(--color-secondary);
+}
+
+.account__title:focus {
+    outline: none;
+}
+
+.account__title--greeting {
+    margin-bottom: 0.15rem;
+    font-size: clamp(1.8rem, 4vw, 2.5rem);
+}
+
+.account__text {
+    margin-bottom: 1.5rem;
+    color: var(--color-text-light);
+}
+
+.account__head {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.account__email {
+    color: var(--color-text-light);
+}
+
+/* ---------- Abas ---------- */
+.tabs {
+    display: flex;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.tabs__tab {
+    margin-bottom: -1px;
+    padding: 0.75rem 1.25rem;
+    border: none;
+    border-bottom: 2px solid transparent;
+    background: none;
+    font-weight: 600;
+    color: var(--color-text-light);
+    cursor: pointer;
+    transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.tabs__tab:hover {
+    color: var(--color-secondary);
+}
+
+.tabs__tab[aria-selected="true"] {
+    border-bottom-color: var(--color-primary);
+    color: var(--color-secondary);
+}
+
+.account__card .tabs__tab {
+    flex: 1;
+}
+
+/* ---------- Formulários ---------- */
+.form {
+    display: grid;
+    gap: 1rem;
+}
+
+.form--wide {
+    max-width: 480px;
+}
+
+.field__label {
+    display: block;
+    margin-bottom: 0.35rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.field__optional {
+    font-weight: 400;
+    color: var(--color-text-light);
+}
+
+.field__input {
+    width: 100%;
+    padding: 0.75rem 0.9rem;
+    border: 1px solid #CFCBC2;
+    border-radius: var(--radius);
+    background-color: var(--color-white);
+    color: var(--color-text);
+}
+
+.field__input:hover {
+    border-color: var(--color-secondary);
+}
+
+.field__input[readonly] {
+    border-color: var(--color-border);
+    background-color: var(--color-background);
+    color: var(--color-text-light);
+}
+
+.field__hint {
+    margin-top: 0.3rem;
+    font-size: 0.8rem;
+    color: var(--color-text-light);
+}
+
+.check {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    font-size: 0.9rem;
+}
+
+.check input {
+    flex: none;
+    width: 1.1rem;
+    height: 1.1rem;
+    margin-top: 0.2rem;
+    accent-color: var(--color-secondary);
+}
+
+.check a {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.form__message {
+    min-height: 1.25rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.form__message--error {
+    color: #B3261E;
+}
+
+.form__message--success {
+    color: var(--color-success);
+}
+
+.form__submit {
+    width: 100%;
+}
+
+.form__link {
+    justify-self: center;
+    padding: 0.25rem 0;
+    border: none;
+    background: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--color-secondary);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+}
+
+.form__link:hover {
+    color: var(--color-primary-text);
+}
+
+/* ---------- Pedidos ---------- */
+.orders__bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.orders__status {
+    font-size: 0.9rem;
+    color: var(--color-text-light);
+}
+
+.orders {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.orders__empty {
+    padding: 3rem 1.5rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background-color: var(--color-white);
+    text-align: center;
+}
+
+.orders__empty p {
+    margin-bottom: 1.25rem;
+    color: var(--color-text-light);
+}
+
+.order {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background-color: var(--color-white);
+}
+
+.order[open] {
+    border-color: rgba(17, 19, 21, 0.3);
+}
+
+.order__summary {
+    display: grid;
+    grid-template-columns: 1fr auto auto auto;
+    align-items: center;
+    gap: 0.15rem 1rem;
+    padding: 1rem 1.25rem;
+    list-style: none;
+    cursor: pointer;
+}
+
+.order__summary::-webkit-details-marker {
+    display: none;
+}
+
+.order__summary::after {
+    content: '';
+    grid-column: 4;
+    grid-row: 1 / span 2;
+    width: 0.55rem;
+    height: 0.55rem;
+    border-right: 2px solid var(--color-text-light);
+    border-bottom: 2px solid var(--color-text-light);
+    transform: rotate(45deg);
+    transition: transform 0.2s ease;
+}
+
+.order[open] .order__summary::after {
+    transform: rotate(-135deg);
+}
+
+.order__number {
+    grid-column: 1;
+    font-family: var(--font-heading);
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--color-secondary);
+}
+
+.order__date {
+    grid-column: 1;
+    grid-row: 2;
+    font-size: 0.85rem;
+    color: var(--color-text-light);
+}
+
+.order__summary .badge {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+}
+
+.order__total {
+    grid-column: 3;
+    grid-row: 1 / span 2;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.badge {
+    display: inline-block;
+    padding: 0.2rem 0.65rem;
+    border-radius: 2px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.badge--aguardando_pagamento { background-color: #FFF1D6; color: #7A4A00; }
+.badge--em_preparo           { background-color: #E1EEFB; color: #0E4A8A; }
+.badge--enviado              { background-color: #E8E3F7; color: #4A2E8F; }
+.badge--entregue             { background-color: #DDF0DF; color: #1E5E24; }
+.badge--cancelado            { background-color: #F6DEDC; color: #8C1D18; }
+
+.order__body {
+    padding: 1.25rem;
+    border-top: 1px solid var(--color-border);
+}
+
+/* ---------- Andamento do pedido ---------- */
+.timeline {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    margin-bottom: 1.25rem;
+}
+
+.timeline__step {
+    position: relative;
+    font-size: 0.8rem;
+    text-align: center;
+}
+
+.timeline__step + .timeline__step::before {
+    content: '';
+    position: absolute;
+    top: 0.45rem;
+    right: 50%;
+    width: 100%;
+    height: 2px;
+    background-color: var(--color-border);
+}
+
+.timeline__step--done::before,
+.timeline__step--current::before {
+    background-color: var(--color-primary) !important;
+}
+
+.timeline__dot {
+    position: relative;
+    z-index: 1;
+    display: block;
+    width: 0.95rem;
+    height: 0.95rem;
+    margin: 0 auto 0.5rem;
+    border: 2px solid #CFCBC2;
+    border-radius: 50%;
+    background-color: var(--color-white);
+}
+
+.timeline__step--done .timeline__dot {
+    border-color: var(--color-primary);
+    background-color: var(--color-primary);
+}
+
+.timeline__step--current .timeline__dot {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(224, 138, 43, 0.25);
+}
+
+.timeline__label {
+    color: var(--color-text-light);
+}
+
+.timeline__step--done .timeline__label,
+.timeline__step--current .timeline__label {
+    font-weight: 600;
+    color: var(--color-secondary);
+}
+
+.order__status-text {
+    margin-bottom: 1rem;
+    font-size: 0.95rem;
+    color: var(--color-text-light);
+}
+
+.order__tracking {
+    margin-bottom: 1rem;
+    font-size: 0.95rem;
+}
+
+.order__items {
+    border-top: 1px solid var(--color-border);
+}
+
+.order__item {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid var(--color-border);
+    font-size: 0.95rem;
+}
+
+.order__item-price,
+.order__line span:last-child {
+    font-variant-numeric: tabular-nums;
+}
+
+.order__totals {
+    padding: 0.75rem 0 0;
+}
+
+.order__line {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.15rem 0;
+    font-size: 0.95rem;
+    color: var(--color-text-light);
+}
+
+.order__line--discount {
+    color: var(--color-success);
+}
+
+.order__line--total {
+    margin-top: 0.25rem;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--color-secondary);
+}
+
+.order__help {
+    display: inline-block;
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.order__help:hover {
+    color: var(--color-primary-text);
+}
+
+/* ==========================================================================
+   PÁGINA LEGAL (Política de Privacidade)
+   ========================================================================== */
+.legal {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 3rem var(--gutter) 5rem;
+    line-height: 1.75;
+    color: var(--color-text-light);
+}
+
+.legal__title {
+    margin-bottom: 0.25rem;
+    font-size: clamp(2rem, 4vw, 2.75rem);
+    color: var(--color-secondary);
+}
+
+.legal__updated {
+    margin-bottom: 2rem;
+    font-size: 0.9rem;
+}
+
+.legal h2 {
+    margin: 2.25rem 0 0.75rem;
+    font-size: 1.25rem;
+    color: var(--color-secondary);
+}
+
+.legal ul {
+    padding-left: 1.25rem;
+    list-style: disc;
+}
+
+.legal li + li {
+    margin-top: 0.4rem;
+}
+
+.legal a {
+    color: var(--color-secondary);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.legal__back {
+    display: inline-block;
+    margin-top: 2rem;
+    font-weight: 600;
+}
+
+/* ==========================================================================
    RESPONSIVO
    ========================================================================== */
 @media (max-width: 720px) {
@@ -1512,5 +2059,28 @@ input {
 @media (min-width: 721px) and (max-width: 980px) {
     .product-page {
         gap: 2rem 2.5rem;
+    }
+}
+
+@media (max-width: 720px) {
+    .account {
+        padding-top: 2rem;
+        padding-bottom: 3.5rem;
+    }
+
+    .account__card {
+        padding: 1.5rem 1.25rem;
+    }
+
+    .order__summary {
+        padding: 0.9rem 1rem;
+    }
+
+    .order__body {
+        padding: 1rem;
+    }
+
+    .timeline__step {
+        font-size: 0.72rem;
     }
 }

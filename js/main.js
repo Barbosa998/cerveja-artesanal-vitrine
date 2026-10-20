@@ -5,7 +5,7 @@
  * - Interatividade dos Filtros
  * - Lógica do Carrinho de Compras (salvo no localStorage) e Cupom de Desconto
  * - Expõe window.vitrine.addToCart para a página de produto
- * - Finalização do pedido via WhatsApp
+ * - Finalização do pedido: salva na conta do cliente (Supabase) e envia pelo WhatsApp
  * - Newsletter (opcional, só aparece se houver um endpoint configurado)
  */
 (() => {
@@ -15,9 +15,8 @@
        CONFIGURAÇÃO — ajuste aqui os dados da sua cervejaria
        ====================================================================== */
     const CONFIG = {
-        // Número que recebe os pedidos: país + DDD + número, só dígitos.
-        // TODO: troque pelo seu WhatsApp real (este é um número de exemplo).
-        whatsappNumber: '5544999999999',
+        // Número que recebe os pedidos. Edite em js/config.js (país + DDD + número, só dígitos).
+        whatsappNumber: (window.VITRINE_CONFIG || {}).whatsappNumber || '5544999999999',
 
         // Valor mínimo para frete grátis (em reais).
         freeShippingFrom: 150,
@@ -163,6 +162,13 @@
         const totalEl = $('#cart-total');
         const shippingEl = $('#cart-shipping');
         const statusEl = $('#cart-status');
+        const checkoutBtn = $('#cart-checkout');
+
+        // Aviso do carrinho e tela de "pedido registrado"
+        const noticeEl = $('#cart-notice');
+        const successEl = $('#cart-success');
+        const successNumberEl = $('#cart-success-number');
+        const successWhatsappEl = $('#cart-success-whatsapp');
 
         // Elementos do Cupom de Desconto
         const couponInput = $('#cart-coupon-input');
@@ -214,6 +220,7 @@
 
         /* ---------- Ações ---------- */
         function addItem(product, qty = 1) {
+            if (successEl) successEl.hidden = true;
             const existing = cart.find((item) => item.id === product.id);
             if (existing) {
                 existing.qty = Math.min(existing.qty + qty, MAX_QTY);
@@ -355,7 +362,7 @@
 
             // Lista
             itemsEl.replaceChildren(...cart.map(createItemElement));
-            emptyEl.hidden = cart.length > 0;
+            emptyEl.hidden = cart.length > 0 || Boolean(successEl && !successEl.hidden);
             footerEl.hidden = cart.length === 0;
 
             // Linha de Desconto (se os elementos existirem no HTML)
@@ -377,10 +384,34 @@
                 : 'Você ganhou frete grátis!';
         }
 
-        /* ---------- Finalizar pedido (WhatsApp) ---------- */
-        function checkout() {
-            if (cart.length === 0) return;
+        /* ---------- Finalizar pedido ---------- */
+        function setNotice(message) {
+            if (!noticeEl) return;
+            if (message) {
+                noticeEl.replaceChildren(message);
+            } else {
+                noticeEl.replaceChildren();
+            }
+        }
 
+        // Pede para entrar na conta, com link que volta para esta mesma página depois do login
+        function showLoginNotice() {
+            if (!noticeEl) return;
+
+            const page = (window.location.pathname.split('/').pop() || 'index.html') + window.location.search;
+            const link = document.createElement('a');
+            link.href = `conta.html?voltar=${encodeURIComponent(page)}`;
+            link.className = 'cart__notice-link';
+            link.textContent = 'entre ou crie sua conta';
+
+            noticeEl.replaceChildren(
+                'Para finalizar e acompanhar seu pedido, ',
+                link,
+                '. Seu carrinho fica guardado.'
+            );
+        }
+
+        function buildOrderMessage(orderNumber) {
             const lines = cart.map((item) =>
                 `${item.qty}x ${item.name} - ${brl.format(item.price * item.qty)}`
             );
@@ -394,19 +425,82 @@
                 ]
                 : [`Total: ${brl.format(totalPrice())}`];
 
-            const message = [
-                'Olá! Gostaria de fazer um pedido:',
+            return [
+                orderNumber
+                    ? `Olá! Acabei de fazer o pedido #${orderNumber} no site:`
+                    : 'Olá! Gostaria de fazer um pedido:',
                 '',
                 ...lines,
                 '',
                 ...summaryLines,
                 '',
-                'Nome:',
+                ...(orderNumber ? [] : ['Nome:']),
                 'Endereço de entrega (ou "retirar na fábrica"):'
             ].join('\n');
+        }
 
-            const url = `https://wa.me/${CONFIG.whatsappNumber}?text=${encodeURIComponent(message)}`;
-            window.open(url, '_blank', 'noopener');
+        const whatsappUrl = (message) =>
+            `https://wa.me/${CONFIG.whatsappNumber}?text=${encodeURIComponent(message)}`;
+
+        // Pedido salvo: esvazia o carrinho e mostra o botão para enviar pelo WhatsApp
+        function showOrderRegistered(orderNumber, message) {
+            successNumberEl.textContent = `#${orderNumber}`;
+            successWhatsappEl.href = whatsappUrl(message);
+
+            cart = [];
+            activeCoupon = null;
+            if (couponInput) couponInput.value = '';
+            if (couponMsgEl) couponMsgEl.textContent = '';
+            saveCart();
+
+            successEl.hidden = false;
+            render();
+            announce(`Pedido ${orderNumber} registrado.`);
+            successEl.querySelector('.cart__success-title').scrollIntoView({ block: 'nearest' });
+        }
+
+        async function checkout() {
+            if (cart.length === 0) return;
+
+            const auth = window.vitrineAuth;
+            setNotice('');
+
+            // Área do cliente não configurada: segue direto para o WhatsApp
+            if (!auth || !auth.isConfigured() || !successEl) {
+                window.open(whatsappUrl(buildOrderMessage()), '_blank', 'noopener');
+                return;
+            }
+
+            checkoutBtn.disabled = true;
+
+            try {
+                const session = await auth.getSession();
+                if (!session) {
+                    showLoginNotice();
+                    return;
+                }
+
+                const client = await auth.getClient();
+                const { data, error } = await client.rpc('criar_pedido', {
+                    p_itens: cart.map((item) => ({
+                        id: item.id,
+                        nome: item.name,
+                        preco: item.price,
+                        qtd: item.qty
+                    })),
+                    p_cupom: activeCoupon,
+                    p_desconto: Number(discountValue().toFixed(2))
+                });
+
+                if (error) throw error;
+
+                const order = Array.isArray(data) ? data[0] : data;
+                showOrderRegistered(order.numero, buildOrderMessage(order.numero));
+            } catch (error) {
+                setNotice('Não foi possível registrar o pedido agora. Confira sua conexão e tente novamente.');
+            } finally {
+                checkoutBtn.disabled = false;
+            }
         }
 
         /* ---------- Eventos ---------- */
@@ -451,7 +545,7 @@
             });
         }
 
-        $('#cart-checkout').addEventListener('click', checkout);
+        checkoutBtn.addEventListener('click', checkout);
         $('#cart-clear').addEventListener('click', clearCart);
 
         // Abrir e fechar o painel
@@ -463,6 +557,15 @@
             }
         });
         $('#cart-close').addEventListener('click', () => dialog.close());
+
+        // Ao fechar o painel, some o aviso e a tela de "pedido registrado"
+        dialog.addEventListener('close', () => {
+            setNotice('');
+            if (successEl && !successEl.hidden) {
+                successEl.hidden = true;
+                render();
+            }
+        });
 
         // Clique fora do painel (no fundo escurecido) também fecha
         dialog.addEventListener('click', (event) => {

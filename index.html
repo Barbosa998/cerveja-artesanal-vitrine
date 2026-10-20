@@ -101,15 +101,18 @@
                 </ul>
             </nav>
 
-            <!-- Carrinho -->
-            <button type="button" class="header__cart-btn" id="cart-toggle" aria-label="Abrir carrinho, 0 itens" aria-haspopup="dialog">
-                <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                    <circle cx="9" cy="20" r="1.5" fill="currentColor"/>
-                    <circle cx="18" cy="20" r="1.5" fill="currentColor"/>
-                    <path d="M2 3h3l2.6 12.2a1 1 0 0 0 1 .8h9.2a1 1 0 0 0 1-.76L21 7H6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                <span class="header__cart-count" id="cart-count">0</span>
-            </button>
+            <!-- Conta e carrinho -->
+            <div class="header__actions">
+                <a href="conta.html" class="header__account" id="account-link">Entrar</a>
+                <button type="button" class="header__cart-btn" id="cart-toggle" aria-label="Abrir carrinho, 0 itens" aria-haspopup="dialog">
+                    <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                        <circle cx="9" cy="20" r="1.5" fill="currentColor"/>
+                        <circle cx="18" cy="20" r="1.5" fill="currentColor"/>
+                        <path d="M2 3h3l2.6 12.2a1 1 0 0 0 1 .8h9.2a1 1 0 0 0 1-.76L21 7H6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span class="header__cart-count" id="cart-count">0</span>
+                </button>
+            </div>
         </div>
     </header>
 
@@ -348,6 +351,7 @@
         <!-- Aviso Legal -->
         <div class="footer__legal">
             <small class="footer__warning">Venda proibida para menores de 18 anos. Beba com moderação.</small>
+            <p class="footer__legal-links"><a href="privacidade.html" class="footer__link">Política de Privacidade</a></p>
             <p class="footer__copyright">&copy; 2026 Cervejaria Artesanal. Todos os direitos reservados.</p>
         </div>
     </footer>
@@ -376,8 +380,16 @@
                     <span id="cart-discount"></span>
                 </p>
                 <p class="cart__total"><span>Total</span> <strong id="cart-total">R$ 0,00</strong></p>
+                <p class="cart__notice" id="cart-notice" role="status"></p>
                 <button type="button" class="btn btn--primary cart__checkout" id="cart-checkout">Finalizar pelo WhatsApp</button>
                 <button type="button" class="btn btn--secondary cart__clear" id="cart-clear">Esvaziar carrinho</button>
+            </div>
+
+            <div class="cart__success" id="cart-success" hidden>
+                <h3 class="cart__success-title">Pedido <span id="cart-success-number"></span> registrado</h3>
+                <p class="cart__success-text">Falta só um passo: envie o pedido pelo WhatsApp para combinar o pagamento e a entrega. Você acompanha o status em &ldquo;Minha conta&rdquo;.</p>
+                <a href="#" class="btn btn--primary" id="cart-success-whatsapp" target="_blank" rel="noopener">Enviar pelo WhatsApp</a>
+                <a href="conta.html#pedidos" class="btn btn--secondary">Ver meus pedidos</a>
             </div>
         </div>
     </dialog>
@@ -386,6 +398,8 @@
     <p class="sr-only" id="cart-status" role="status"></p>
 
     <!-- JS Principal -->
+    <script src="js/config.js" defer></script>
+    <script src="js/auth.js" defer></script>
     <script src="js/main.js" defer></script>
 </body>
 </html>
