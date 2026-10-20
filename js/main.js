@@ -2,17 +2,8 @@
  * Arquivo Principal de JavaScript
  * Responsável por:
  * - Controle do Dialog de verificação de idade
- * - Lógica do Carrinho de Compras
  * - Interatividade dos Filtros
- */
-
-// Lógica inicial será desenvolvida na Etapa 2
-/**
- * Arquivo Principal de JavaScript
- * Responsável por:
- * - Controle do Dialog de verificação de idade
- * - Interatividade dos Filtros
- * - Lógica do Carrinho de Compras (salvo no localStorage)
+ * - Lógica do Carrinho de Compras (salvo no localStorage) e Cupom de Desconto
  * - Finalização do pedido via WhatsApp
  * - Newsletter (opcional, só aparece se houver um endpoint configurado)
  */
@@ -33,7 +24,13 @@
         // Newsletter: cole aqui o endereço de um serviço de formulário
         // (ex.: 'https://formspree.io/f/xxxxxxxx'). Se ficar vazio,
         // a seção de newsletter é escondida.
-        newsletterEndpoint: ''
+        newsletterEndpoint: '',
+
+        // Cupons de desconto disponíveis: CODIGO: porcentagem (0.10 = 10%)
+        coupons: {
+            'BEMVINDO10': 0.10,
+            'MARINGA15': 0.15
+        }
     };
 
     const STORAGE_KEYS = {
@@ -46,8 +43,7 @@
     /* ======================================================================
        UTILITÁRIOS
        ====================================================================== */
-    const $ = (selector, scope = document) => scope.querySelector(selector);
-    const $$ = (selector, scope = document) => Array.from(scope.querySelectorAll(selector));
+    const $ = (selector, scope = document) => scope.querySelector(selector); const $$ = (selector, scope = document) => Array.from(scope.querySelectorAll(selector));
 
     const brl = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 
@@ -113,14 +109,8 @@
        2. FILTROS POR ESTILO
        ====================================================================== */
     function initFilters() {
-        const form = $('#filters-form');
-        if (!form) return;
-
-        const cards = $$('.product-card');
-        const status = $('#filters-status');
-
-        const applyFilters = () => {
-            const selected = $$('input[name="estilo"]:checked', form).map((input) => input.value);
+        const form = $('#filters-form'); if (!form) return;          const cards = $$('.product-card');
+        const status = $('#filters-status');          const applyFilters = () => { const selected = $$('input[name="estilo"]:checked', form).map((input) => input.value);
             let visible = 0;
 
             cards.forEach((card) => {
@@ -142,8 +132,7 @@
             $('#vitrine').scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
         });
 
-        $('#filters-clear').addEventListener('click', () => {
-            $$('input[name="estilo"]', form).forEach((input) => { input.checked = false; });
+        $('#filters-clear').addEventListener('click', () => { $$('input[name="estilo"]', form).forEach((input) => { input.checked = false; });
             applyFilters();
         });
 
@@ -151,7 +140,7 @@
     }
 
     /* ======================================================================
-       3. CARRINHO DE COMPRAS
+       3. CARRINHO DE COMPRAS E CUPOM DE DESCONTO
        ====================================================================== */
     function initCart() {
         const dialog = $('#cart-dialog');
@@ -166,7 +155,16 @@
         const shippingEl = $('#cart-shipping');
         const statusEl = $('#cart-status');
 
+        // Elementos do Cupom de Desconto
+        const couponInput = $('#cart-coupon-input');
+        const couponApplyBtn = $('#cart-coupon-apply');
+        const couponMsgEl = $('#cart-coupon-msg');
+        const discountRowEl = $('#cart-discount-row');
+        const couponNameEl = $('#cart-coupon-name');
+        const discountEl = $('#cart-discount');
+
         let cart = loadCart();
+        let activeCoupon = null; // Guarda o código do cupom aplicado
 
         /* ---------- Persistência ---------- */
         function loadCart() {
@@ -193,6 +191,11 @@
         /* ---------- Cálculos ---------- */
         const totalItems = () => cart.reduce((sum, item) => sum + item.qty, 0);
         const totalPrice = () => cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+        const discountValue = () => {
+            if (!activeCoupon || !CONFIG.coupons[activeCoupon]) return 0;
+            return totalPrice() * CONFIG.coupons[activeCoupon];
+        };
+        const finalPrice = () => Math.max(0, totalPrice() - discountValue());
 
         function announce(message) {
             statusEl.textContent = '';
@@ -235,9 +238,38 @@
 
         function clearCart() {
             cart = [];
+            activeCoupon = null;
+            if (couponInput) couponInput.value = '';
+            if (couponMsgEl) couponMsgEl.textContent = '';
             saveCart();
             render();
             announce('Carrinho esvaziado.');
+        }
+
+        function applyCoupon() {
+            if (!couponInput || !couponMsgEl) return;
+
+            const code = couponInput.value.trim().toUpperCase();
+
+            if (!code) {
+                activeCoupon = null;
+                couponMsgEl.textContent = 'Digite um código de cupom.';
+                render();
+                return;
+            }
+
+            if (CONFIG.coupons[code]) {
+                activeCoupon = code;
+                const pct = Math.round(CONFIG.coupons[code] * 100);
+                couponMsgEl.textContent = `Cupom ${code} (${pct}% OFF) aplicado!`;
+                announce(`Cupom ${code} com ${pct} por cento de desconto aplicado.`);
+            } else {
+                activeCoupon = null;
+                couponMsgEl.textContent = 'Cupom inválido ou expirado.';
+                announce('Cupom inválido ou expirado.');
+            }
+
+            render();
         }
 
         /* ---------- Renderização ---------- */
@@ -301,7 +333,8 @@
 
         function render() {
             const items = totalItems();
-            const total = totalPrice();
+            const discount = discountValue();
+            const finalTotal = finalPrice();
 
             // Contador do cabeçalho
             countEl.textContent = String(items);
@@ -316,9 +349,20 @@
             emptyEl.hidden = cart.length > 0;
             footerEl.hidden = cart.length === 0;
 
+            // Linha de Desconto (se os elementos existirem no HTML)
+            if (discountRowEl && couponNameEl && discountEl) {
+                if (activeCoupon && discount > 0) {
+                    discountRowEl.hidden = false;
+                    couponNameEl.textContent = activeCoupon;
+                    discountEl.textContent = `- ${brl.format(discount)}`;
+                } else {
+                    discountRowEl.hidden = true;
+                }
+            }
+
             // Total e frete
-            totalEl.textContent = brl.format(total);
-            const missing = CONFIG.freeShippingFrom - total;
+            totalEl.textContent = brl.format(finalTotal);
+            const missing = CONFIG.freeShippingFrom - finalTotal;
             shippingEl.textContent = missing > 0
                 ? `Faltam ${brl.format(missing)} para o frete grátis.`
                 : 'Você ganhou frete grátis!';
@@ -332,12 +376,21 @@
                 `${item.qty}x ${item.name} - ${brl.format(item.price * item.qty)}`
             );
 
+            const discount = discountValue();
+            const summaryLines = discount > 0
+                ? [
+                    `Subtotal: ${brl.format(totalPrice())}`,
+                    `Cupom (${activeCoupon}): -${brl.format(discount)}`,
+                    `Total com desconto: ${brl.format(finalPrice())}`
+                ]
+                : [`Total: ${brl.format(totalPrice())}`];
+
             const message = [
                 'Olá! Gostaria de fazer um pedido:',
                 '',
                 ...lines,
                 '',
-                `Total: ${brl.format(totalPrice())}`,
+                ...summaryLines,
                 '',
                 'Nome:',
                 'Endereço de entrega (ou "retirar na fábrica"):'
@@ -377,6 +430,17 @@
             if (action === 'decrease') changeQty(id, -1);
             if (action === 'remove') removeItem(id);
         });
+
+        // Eventos do Cupom (botão Aplicar e tecla Enter no campo)
+        if (couponApplyBtn && couponInput) {
+            couponApplyBtn.addEventListener('click', applyCoupon);
+            couponInput.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    applyCoupon();
+                }
+            });
+        }
 
         $('#cart-checkout').addEventListener('click', checkout);
         $('#cart-clear').addEventListener('click', clearCart);
@@ -443,6 +507,43 @@
     /* ======================================================================
        INICIALIZAÇÃO (o script usa "defer", então o HTML já está pronto)
        ====================================================================== */
+/* ======================================================================
+       5. CARROSSEL DESLIZANTE (Arrastar com o mouse na vitrine)
+       ====================================================================== */
+    function initShowcaseSlider() {
+        const track = $('.showcase__grid');
+        if (!track) return;
+
+        let isDown = false;
+        let startX = 0;
+        let scrollLeft = 0;
+
+        track.addEventListener('mousedown', (event) => {
+            isDown = true;
+            startX = event.pageX - track.offsetLeft;
+            scrollLeft = track.scrollLeft;
+            track.style.scrollSnapType = 'none'; // Desativa o imã enquanto arrasta
+            track.style.scrollBehavior = 'auto';
+        });
+
+        const stopDrag = () => {
+            if (!isDown) return;
+            isDown = false;
+            track.style.scrollSnapType = 'x mandatory'; // Reativa o alinhamento suave
+            track.style.scrollBehavior = 'smooth';
+        };
+
+        track.addEventListener('mouseleave', stopDrag);
+        track.addEventListener('mouseup', stopDrag);
+
+        track.addEventListener('mousemove', (event) => {
+            if (!isDown) return;
+            event.preventDefault();
+            const x = event.pageX - track.offsetLeft;
+            const walk = (x - startX) * 1.5;
+            track.scrollLeft = scrollLeft - walk;
+        });
+    }
     initAgeGate();
     initFilters();
     initCart();
