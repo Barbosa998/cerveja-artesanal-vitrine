@@ -14,10 +14,7 @@
  * carrinho continua enviando o pedido direto pelo WhatsApp, como antes.
  */
 window.VITRINE_CONFIG = {
-    // Número que recebe os pedidos: país + DDD + número, só dígitos.
-    // TODO: troque pelo seu WhatsApp real (este é um número de exemplo).
-    whatsappNumber: '5544999999999',
-
-    supabaseUrl: '',
-    supabaseAnonKey: ''
+    whatsappNumber: '5544998934310',
+    supabaseUrl: 'https://eogapdxewnahxppcmpaf.supabase.co/',
+    supabaseAnonKey: 'sb_publishable_DPezE7ZQEHXvR24_SenWyA_zwiGQFx1'
 };
