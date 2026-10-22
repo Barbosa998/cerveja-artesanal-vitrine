@@ -550,6 +550,23 @@
                 Falar sobre este pedido no WhatsApp
             </a>` : '';
 
+        // Pagar com Pix: só faz sentido enquanto o pedido estiver aguardando
+        // pagamento (se já foi pago/cancelado, não mostra nada disto).
+        const pix = order.status === 'aguardando_pagamento' ? `
+            <div class="order__pix" data-pix>
+                <button type="button" class="btn btn--primary order__pix-btn" data-action="pix">Pagar com Pix</button>
+                <p class="order__pix-msg" role="status" aria-live="polite" data-pix-msg></p>
+                <div class="order__pix-qr" hidden data-pix-qr>
+                    <img data-pix-qr-img alt="QR Code do Pix para pagar o pedido" width="180" height="180">
+                    <div class="order__pix-code-row">
+                        <label class="sr-only">Código Pix copia e cola</label>
+                        <input type="text" class="field__input" readonly data-pix-code>
+                        <button type="button" class="btn btn--secondary" data-action="pix-copy">Copiar código</button>
+                    </div>
+                    <p class="order__pix-status" role="status" aria-live="polite" data-pix-status>Aguardando pagamento...</p>
+                </div>
+            </div>` : '';
+
         return `
             <details class="order" ${open ? 'open' : ''}>
                 <summary class="order__summary">
@@ -567,9 +584,121 @@
                         ${totals}
                         <p class="order__line order__line--total"><span>Total</span><span>${brl.format(Number(order.total))}</span></p>
                     </div>
+                    ${pix}
                     ${whatsapp}
                 </div>
             </details>`;
+    }
+
+    /* ======================================================================
+       PAGAR COM PIX (dentro de um pedido já existente, "aguardando pagamento")
+       Mesmas Edge Functions usadas no carrinho (js/main.js) — ver
+       docs/PAGAMENTOS.md para a arquitetura completa.
+       ====================================================================== */
+    const PIX_POLL_INTERVAL_MS = 4000;
+    const PIX_POLL_TIMEOUT_MS = 10 * 60 * 1000;
+    const pixPollTimers = new Map(); // orderId -> intervalId
+
+    function stopAllPixPolling() {
+        pixPollTimers.forEach((timerId) => window.clearInterval(timerId));
+        pixPollTimers.clear();
+    }
+
+    function setPixMessage(orderEl, text, type = '') {
+        const el = orderEl.querySelector('[data-pix-msg]');
+        if (!el) return;
+        el.textContent = text;
+        el.className = `order__pix-msg${type ? ` order__pix-msg--${type}` : ''}`;
+    }
+
+    function setPixStatusText(orderEl, text, type = '') {
+        const el = orderEl.querySelector('[data-pix-status]');
+        if (!el) return;
+        el.textContent = text;
+        el.className = `order__pix-status${type ? ` order__pix-status--${type}` : ''}`;
+    }
+
+    async function checkPixStatus(orderId, orderEl) {
+        try {
+            const { data, error } = await client.functions.invoke('check-pix-payment', {
+                body: { order_id: orderId }
+            });
+            if (error || !data) return;
+
+            if (data.status === 'pago') {
+                window.clearInterval(pixPollTimers.get(orderId));
+                pixPollTimers.delete(orderId);
+                setPixStatusText(orderEl, 'Pagamento confirmado! 🎉', 'success');
+                const copyBtn = orderEl.querySelector('[data-action="pix-copy"]');
+                if (copyBtn) copyBtn.hidden = true;
+                loadOrders(); // atualiza o selo de status e a linha do tempo do pedido
+            }
+        } catch (error) {
+            /* falha pontual: tenta de novo no próximo intervalo */
+        }
+    }
+
+    async function startPixPayment(orderId, orderEl) {
+        const btn = orderEl.querySelector('[data-action="pix"]');
+        if (!btn) return;
+
+        btn.disabled = true;
+        btn.textContent = 'Gerando o Pix...';
+        setPixMessage(orderEl, '');
+
+        try {
+            const { data, error } = await client.functions.invoke('create-pix-payment', {
+                body: { order_id: orderId }
+            });
+            if (error) throw error;
+            if (data && data.error) throw new Error(data.error);
+
+            orderEl.querySelector('[data-pix-qr-img]').src = `data:image/png;base64,${data.qr_code_base64}`;
+            orderEl.querySelector('[data-pix-code]').value = data.qr_code;
+            orderEl.querySelector('[data-pix-qr]').hidden = false;
+            btn.hidden = true;
+            setPixStatusText(orderEl, 'Aguardando pagamento... a confirmação é automática.');
+
+            const startedAt = Date.now();
+            window.clearInterval(pixPollTimers.get(orderId));
+            const timerId = window.setInterval(() => {
+                if (Date.now() - startedAt > PIX_POLL_TIMEOUT_MS) {
+                    window.clearInterval(pixPollTimers.get(orderId));
+                    pixPollTimers.delete(orderId);
+                    setPixStatusText(orderEl, 'Ainda não identificamos o pagamento. Se já pagou, atualize a página em alguns minutos.');
+                    return;
+                }
+                checkPixStatus(orderId, orderEl);
+            }, PIX_POLL_INTERVAL_MS);
+            pixPollTimers.set(orderId, timerId);
+        } catch (error) {
+            setPixMessage(orderEl, 'Não foi possível gerar o Pix agora. Você pode falar pelo WhatsApp.', 'error');
+            btn.disabled = false;
+            btn.textContent = 'Pagar com Pix';
+        }
+    }
+
+    function initPixInOrders() {
+        const list = $('#orders-list');
+        list.addEventListener('click', (event) => {
+            const orderEl = event.target.closest('.order');
+            if (!orderEl) return;
+            const orderId = orderEl.dataset.id;
+
+            if (event.target.closest('[data-action="pix"]')) {
+                startPixPayment(orderId, orderEl);
+            }
+
+            if (event.target.closest('[data-action="pix-copy"]')) {
+                const input = orderEl.querySelector('[data-pix-code]');
+                const copyBtn = event.target.closest('[data-action="pix-copy"]');
+                if (!input) return;
+                navigator.clipboard.writeText(input.value).catch(() => input.select());
+                const original = copyBtn.textContent;
+                copyBtn.textContent = 'Copiado!';
+                window.setTimeout(() => { copyBtn.textContent = original; }, 1500);
+            }
+        });
     }
 
     let loadingOrders = false;
@@ -604,6 +733,7 @@
             const openIds = new Set($$('.order[open]', list).map((el) => el.dataset.id));
             const firstLoad = !list.children.length || list.querySelector('.orders__empty');
 
+            stopAllPixPolling(); // os nós antigos (com os timers apontando pra eles) vão sumir
             list.innerHTML = data.map((order, index) => orderMarkup(order, firstLoad ? index === 0 : false)).join('');
             $$('.order', list).forEach((el, index) => {
                 el.dataset.id = data[index].id;
@@ -620,6 +750,7 @@
 
     function initOrders() {
         $('#orders-refresh').addEventListener('click', loadOrders);
+        initPixInOrders();
 
         // Ao voltar para a aba do navegador, atualiza o status
         document.addEventListener('visibilitychange', () => {

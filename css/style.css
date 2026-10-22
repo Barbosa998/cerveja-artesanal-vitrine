@@ -2035,6 +2035,67 @@ input {
     color: var(--color-primary-text);
 }
 
+/* ---------- Pagar com Pix (pedido aguardando pagamento) ---------- */
+.order__pix {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--color-border);
+}
+
+.order__pix-msg {
+    min-height: 1.1rem;
+    font-size: 0.85rem;
+}
+
+.order__pix-msg--error {
+    color: #c0392b;
+    font-weight: 600;
+}
+
+.order__pix-qr {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background-color: var(--color-background);
+    text-align: center;
+}
+
+.order__pix-qr img {
+    width: 160px;
+    height: 160px;
+    border-radius: var(--radius);
+}
+
+.order__pix-code-row {
+    display: flex;
+    gap: 0.5rem;
+    width: 100%;
+}
+
+.order__pix-code-row .field__input {
+    flex: 1;
+    min-width: 0;
+    font-size: 0.75rem;
+    font-family: monospace;
+}
+
+.order__pix-status {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--color-text-light);
+}
+
+.order__pix-status--success {
+    color: var(--color-success);
+}
+
 /* ==========================================================================
    PÁGINA LEGAL (Política de Privacidade)
    ========================================================================== */
