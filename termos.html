@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- CSP: só permite recursos do próprio site, do CDN do Supabase e das fontes do Google.
          Limitação: "frame-ancestors" não funciona por <meta> (precisa de cabeçalho HTTP). -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://*.supabase.co; base-uri 'self'; form-action 'self'; object-src 'none';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://*.supabase.co https://viacep.com.br; base-uri 'self'; form-action 'self'; object-src 'none';">
     <title>Termos de Uso | Cervejaria Artesanal</title>
     <meta name="description" content="Termos de uso, informações do fornecedor e direito de arrependimento da Cervejaria Artesanal.">
     <meta name="robots" content="noindex">
@@ -181,6 +181,21 @@
                     <span id="cart-discount"></span>
                 </p>
                 <p class="cart__total"><span>Total</span> <strong id="cart-total">R$ 0,00</strong></p>
+                <div class="cart__address">
+                    <label for="cart-cep" class="field__label">CEP para entrega <span class="field__optional">(opcional — ou combine &ldquo;retirar na fábrica&rdquo; pelo WhatsApp)</span></label>
+                    <input type="text" id="cart-cep" class="cart__coupon-input" placeholder="00000-000" inputmode="numeric" maxlength="9" autocomplete="postal-code">
+                    <p class="cart__cep-status" id="cart-cep-status" role="status" aria-live="polite"></p>
+                    <div class="cart__address-fields" id="cart-address-fields" hidden>
+                        <div class="field">
+                            <label for="cart-numero" class="field__label">Número</label>
+                            <input type="text" id="cart-numero" class="field__input" inputmode="numeric" maxlength="10" autocomplete="address-line2">
+                        </div>
+                        <div class="field">
+                            <label for="cart-complemento" class="field__label">Complemento <span class="field__optional">(opcional)</span></label>
+                            <input type="text" id="cart-complemento" class="field__input" maxlength="60" autocomplete="address-line3">
+                        </div>
+                    </div>
+                </div>
                 <p class="cart__notice" id="cart-notice" role="status"></p>
                 <button type="button" class="btn btn--primary cart__checkout" id="cart-checkout">Finalizar pelo WhatsApp</button>
                 <button type="button" class="btn btn--secondary cart__clear" id="cart-clear">Esvaziar carrinho</button>

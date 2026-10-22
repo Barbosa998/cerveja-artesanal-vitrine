@@ -32,7 +32,8 @@ cerveja-artesanal-vitrine/
 │       ├── cart.js           # Somar, validar e mudar o carrinho
 │       ├── coupons.js        # Calcular desconto de cupom
 │       ├── orderStatus.js    # Máquina de estados do pedido (espelha o banco)
-│       └── __tests__/        # Testes (Vitest) dos três módulos acima
+│       ├── viacep.js         # Busca de endereço por CEP (API ViaCEP)
+│       └── __tests__/        # Testes (Vitest) dos módulos acima
 ├── supabase/
 │   ├── schema.sql           # Tabelas e regras de segurança do banco (clientes/pedidos)
 │   └── schema_admin.sql     # Migração do painel: admins, produtos, pagamentos, histórico
@@ -125,12 +126,19 @@ Cada confirmação de pagamento ou mudança de status fica registrada (quem, qua
 - Troque a senha da conta admin periodicamente e não a reaproveite de outro serviço.
 
 ## Como funciona o pedido
-1. O cliente monta o carrinho (que fica guardado no navegador).
+1. O cliente monta o carrinho (que fica guardado no navegador). No carrinho, pode digitar o CEP: o endereço (rua, bairro, cidade, UF) é preenchido automaticamente pela [API pública do ViaCEP](https://viacep.com.br) — sem chave, sem custo. É opcional; dá pra combinar "retirar na fábrica" pelo WhatsApp em vez de preencher.
 2. Ao finalizar, se não estiver logado, é convidado a entrar ou criar conta e volta para onde estava.
 3. O pedido é salvo na conta dele com o status "Aguardando pagamento".
-4. Aparece o botão **Enviar pelo WhatsApp**, com o pedido pronto, para combinar pagamento e entrega.
+4. Aparece o botão **Enviar pelo WhatsApp**, com o pedido (e o endereço, se foi preenchido) pronto, para combinar pagamento e entrega.
 
 O pagamento continua sendo combinado por fora (WhatsApp/Pix). Por isso, confira o valor do pedido na hora de cobrar. Pagamento online dentro do site seria uma próxima etapa.
+
+### Busca de CEP (ViaCEP)
+- Implementada em `js/modules/viacep.js` (funções puras testadas: `normalizeCep`, `isValidCep`) e ligada ao carrinho em `js/main.js`.
+- Espera 500ms depois da última tecla digitada antes de consultar (debounce), cancela uma busca anterior ainda em andamento se o CEP mudar de novo (`AbortController`), e guarda em memória os CEPs já consultados nesta visita (não refaz a mesma chamada à toa).
+- Valida o formato (8 dígitos) **antes** de chamar a API — um CEP mal formatado faz a API devolver uma página HTML de erro em vez de JSON, então validar antes evita isso.
+- Mensagens de erro acessíveis (`aria-live="polite"`) distinguem "CEP não encontrado" de falha de rede, e sempre deixam claro que dá pra combinar o endereço pelo WhatsApp mesmo assim — o CEP nunca é obrigatório para finalizar o pedido.
+- O endereço **não é salvo no banco**: só entra na mensagem do WhatsApp (como já acontecia, de forma manual, antes desta funcionalidade). Guardá-lo no pedido/perfil é um próximo passo natural, se fizer sentido.
 
 ## Segurança
 

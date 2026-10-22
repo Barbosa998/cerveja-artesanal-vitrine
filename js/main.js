@@ -9,6 +9,9 @@
  *   js/modules/__tests__/. Aqui só a parte que mexe no DOM/localStorage.
  * - Expõe window.vitrine.addToCart para a página de produto
  * - Finalização do pedido: salva na conta do cliente (Supabase) e envia pelo WhatsApp
+ * - Endereço de entrega: busca por CEP na API pública do ViaCEP
+ *   (js/modules/viacep.js), com cache em memória, debounce e cancelamento
+ *   da busca anterior se a pessoa continuar digitando.
  * - Newsletter (opcional, só aparece se houver um endpoint configurado)
  */
 import {
@@ -21,6 +24,7 @@ import {
     MAX_QTY
 } from './modules/cart.js';
 import { findCouponRate, calculateDiscount, calculateFinalPrice } from './modules/coupons.js';
+import { normalizeCep, isValidCep, fetchAddressByCep } from './modules/viacep.js';
 
 (() => {
     'use strict';
@@ -62,6 +66,11 @@ import { findCouponRate, calculateDiscount, calculateFinalPrice } from './module
 
     const prefersReducedMotion = () =>
         window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // Cache em memória dos CEPs já consultados nesta visita (não é persistido:
+    // some ao recarregar a página). Evita bater na API de novo se a pessoa
+    // apagar e digitar o mesmo CEP, ou abrir/fechar o carrinho várias vezes.
+    const cepCache = new Map();
 
     // localStorage pode falhar (modo privado, bloqueado etc.), então protegemos tudo.
     const storage = {
@@ -239,8 +248,16 @@ import { findCouponRate, calculateDiscount, calculateFinalPrice } from './module
         const couponNameEl = $('#cart-coupon-name');
         const discountEl = $('#cart-discount');
 
+        // Elementos do endereço de entrega (CEP via ViaCEP)
+        const cepInput = $('#cart-cep');
+        const cepStatusEl = $('#cart-cep-status');
+        const addressFieldsEl = $('#cart-address-fields');
+        const numeroInput = $('#cart-numero');
+        const complementoInput = $('#cart-complemento');
+
         let cart = loadCart();
         let activeCoupon = null; // Guarda o código do cupom aplicado
+        let resolvedAddress = null; // { cep, rua, bairro, cidade, uf }, preenchido pelo ViaCEP
 
         /* ---------- Persistência ---------- */
         function loadCart() {
@@ -295,6 +312,7 @@ import { findCouponRate, calculateDiscount, calculateFinalPrice } from './module
             activeCoupon = null;
             if (couponInput) couponInput.value = '';
             if (couponMsgEl) couponMsgEl.textContent = '';
+            resetAddress();
             saveCart();
             render();
             announce('Carrinho esvaziado.');
@@ -325,6 +343,99 @@ import { findCouponRate, calculateDiscount, calculateFinalPrice } from './module
             }
 
             render();
+        }
+
+        /* ---------- Endereço de entrega (CEP via ViaCEP) ---------- */
+        let cepDebounceTimer = null;
+        let cepAbortController = null;
+
+        function setCepStatus(text, type = '') {
+            if (!cepStatusEl) return;
+            cepStatusEl.textContent = text;
+            cepStatusEl.className = `cart__cep-status${type ? ` cart__cep-status--${type}` : ''}`;
+        }
+
+        function clearResolvedAddress() {
+            resolvedAddress = null;
+            if (addressFieldsEl) addressFieldsEl.hidden = true;
+        }
+
+        const CEP_ERROR_MESSAGES = {
+            formato_invalido: 'CEP precisa ter 8 dígitos.',
+            nao_encontrado: 'CEP não encontrado. Confira o número ou preencha o endereço pelo WhatsApp mesmo.',
+            falha_rede: 'Não foi possível consultar o CEP agora. Você pode preencher o endereço pelo WhatsApp.'
+        };
+
+        async function lookupCep(rawCep) {
+            const cep = normalizeCep(rawCep);
+
+            if (cepAbortController) cepAbortController.abort(); // cancela uma busca anterior ainda em andamento
+
+            if (!cep) {
+                setCepStatus('');
+                clearResolvedAddress();
+                return;
+            }
+
+            if (!isValidCep(cep)) {
+                setCepStatus(cep.length < 8 ? '' : CEP_ERROR_MESSAGES.formato_invalido, cep.length < 8 ? '' : 'error');
+                clearResolvedAddress();
+                return;
+            }
+
+            if (cepCache.has(cep)) {
+                resolvedAddress = cepCache.get(cep);
+                setCepStatus(`${resolvedAddress.rua ? resolvedAddress.rua + ', ' : ''}${resolvedAddress.bairro}, ${resolvedAddress.cidade} - ${resolvedAddress.uf}`, 'success');
+                if (addressFieldsEl) addressFieldsEl.hidden = false;
+                return;
+            }
+
+            cepAbortController = new AbortController();
+            const { signal } = cepAbortController;
+            setCepStatus('Buscando endereço...');
+
+            try {
+                const address = await fetchAddressByCep(cep, { signal });
+                if (signal.aborted) return; // chegou atrasado (CEP já mudou de novo)
+
+                cepCache.set(cep, address);
+                resolvedAddress = address;
+                setCepStatus(`${address.rua ? address.rua + ', ' : ''}${address.bairro}, ${address.cidade} - ${address.uf}`, 'success');
+                if (addressFieldsEl) addressFieldsEl.hidden = false;
+            } catch (error) {
+                if (error && error.name === 'AbortError') return; // cancelado, não é erro de verdade
+                setCepStatus(CEP_ERROR_MESSAGES[error && error.code] || CEP_ERROR_MESSAGES.falha_rede, 'error');
+                clearResolvedAddress();
+            }
+        }
+
+        // Espera a pessoa parar de digitar por 500ms antes de consultar
+        // (evita uma chamada à API a cada tecla digitada).
+        function onCepInput() {
+            window.clearTimeout(cepDebounceTimer);
+            cepDebounceTimer = window.setTimeout(() => lookupCep(cepInput.value), 500);
+        }
+
+        function deliveryAddressLine() {
+            if (!resolvedAddress) return null;
+            const numero = numeroInput ? numeroInput.value.trim() : '';
+            const complemento = complementoInput ? complementoInput.value.trim() : '';
+            const partes = [
+                resolvedAddress.rua && numero ? `${resolvedAddress.rua}, ${numero}` : resolvedAddress.rua,
+                complemento,
+                resolvedAddress.bairro,
+                `${resolvedAddress.cidade} - ${resolvedAddress.uf}`,
+                `CEP ${resolvedAddress.cep}`
+            ].filter(Boolean);
+            return partes.join(', ');
+        }
+
+        function resetAddress() {
+            if (cepInput) cepInput.value = '';
+            if (numeroInput) numeroInput.value = '';
+            if (complementoInput) complementoInput.value = '';
+            setCepStatus('');
+            clearResolvedAddress();
         }
 
         /* ---------- Renderização ---------- */
@@ -464,6 +575,8 @@ import { findCouponRate, calculateDiscount, calculateFinalPrice } from './module
                 ]
                 : [`Total: ${brl.format(totalPrice())}`];
 
+            const endereco = deliveryAddressLine();
+
             return [
                 orderNumber
                     ? `Olá! Acabei de fazer o pedido #${orderNumber} no site:`
@@ -474,7 +587,9 @@ import { findCouponRate, calculateDiscount, calculateFinalPrice } from './module
                 ...summaryLines,
                 '',
                 ...(orderNumber ? [] : ['Nome:']),
-                'Endereço de entrega (ou "retirar na fábrica"):'
+                endereco
+                    ? `Endereço de entrega: ${endereco}`
+                    : 'Endereço de entrega (ou "retirar na fábrica"):'
             ].join('\n');
         }
 
@@ -490,6 +605,7 @@ import { findCouponRate, calculateDiscount, calculateFinalPrice } from './module
             activeCoupon = null;
             if (couponInput) couponInput.value = '';
             if (couponMsgEl) couponMsgEl.textContent = '';
+            resetAddress();
             saveCart();
 
             successEl.hidden = false;
@@ -588,6 +704,11 @@ import { findCouponRate, calculateDiscount, calculateFinalPrice } from './module
                     applyCoupon();
                 }
             });
+        }
+
+        // Evento do CEP (busca com debounce, ver onCepInput/lookupCep acima)
+        if (cepInput) {
+            cepInput.addEventListener('input', onCepInput);
         }
 
         checkoutBtn.addEventListener('click', checkout);
