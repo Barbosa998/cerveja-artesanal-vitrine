@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- CSP: só permite recursos do próprio site, do CDN do Supabase e das fontes do Google.
+         Limitação: "frame-ancestors" não funciona por <meta> (precisa de cabeçalho HTTP). -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://*.supabase.co; base-uri 'self'; form-action 'self'; object-src 'none';">
+    <title>Termos de Uso | Cervejaria Artesanal</title>
+    <meta name="description" content="Termos de uso, informações do fornecedor e direito de arrependimento da Cervejaria Artesanal.">
+    <meta name="robots" content="noindex">
+    <meta property="og:title" content="Termos de Uso | Cervejaria Artesanal">
+    <meta property="og:description" content="Termos de uso, informações do fornecedor e direito de arrependimento da Cervejaria Artesanal.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://barbosa998.github.io/cerveja-artesanal-vitrine/">
+    <meta property="og:image" content="https://barbosa998.github.io/cerveja-artesanal-vitrine/assets/img/beer-ipa.jpg">
+
+    <link rel="icon" href="assets/img/favicon.ico" sizes="any">
+    <link rel="icon" href="assets/img/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
+
+    <!-- Fontes: Outfit (títulos) + Plus Jakarta Sans (texto) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Skip link para acessibilidade (teclado) -->
+    <a href="#conteudo-principal" class="skip-link">Ir para o conteúdo principal</a>
+
+    <dialog id="age-gate" class="age-gate" aria-labelledby="age-gate-title" aria-describedby="age-gate-desc">
+        <div class="age-gate__content">
+            <h2 id="age-gate-title" class="age-gate__title" tabindex="-1">Você tem 18 anos ou mais?</h2>
+            <p id="age-gate-desc" class="age-gate__description">O acesso a este site é restrito a maiores de idade.</p>
+            <form method="dialog" class="age-gate__actions" id="age-gate-form">
+                <button type="button" class="btn btn--secondary" id="btn-no">Não</button>
+                <button type="submit" class="btn btn--primary" id="btn-yes" autofocus>Sim, sou maior de 18</button>
+            </form>
+        </div>
+    </dialog>
+
+    <!-- Barra de avisos -->
+    <div class="topbar">
+        <p class="topbar__text">Frete grátis em compras acima de R$ 150,00</p>
+        <p class="topbar__text topbar__text--extra">Retirada na fábrica em Maringá - PR</p>
+    </div>
+
+    <header class="header">
+        <div class="header__container">
+            <!-- Logo -->
+            <a href="./" class="header__logo-link" aria-label="Página inicial da Cervejaria">
+                <img src="assets/img/logo-placeholder.svg" alt="Logo Cervejaria Artesanal" class="header__logo-img" width="150" height="50">
+            </a>
+
+            <!-- Navegação Principal -->
+            <nav class="nav" aria-label="Navegação principal">
+                <ul class="nav__list">
+                    <li class="nav__item"><a href="./" class="nav__link">Início</a></li>
+                    <li class="nav__item"><a href="index.html#vitrine" class="nav__link">Cervejas</a></li>
+                    <li class="nav__item"><a href="index.html#estilos" class="nav__link">Estilos</a></li>
+                    <li class="nav__item"><a href="index.html#sobre" class="nav__link">Sobre</a></li>
+                    <li class="nav__item"><a href="#contato" class="nav__link">Contato</a></li>
+                </ul>
+            </nav>
+
+            <!-- Conta e carrinho -->
+            <div class="header__actions">
+                <a href="conta.html" class="header__account" id="account-link">Entrar</a>
+                <button type="button" class="header__cart-btn" id="cart-toggle" aria-label="Abrir carrinho, 0 itens" aria-haspopup="dialog">
+                    <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                        <circle cx="9" cy="20" r="1.5" fill="currentColor"/>
+                        <circle cx="18" cy="20" r="1.5" fill="currentColor"/>
+                        <path d="M2 3h3l2.6 12.2a1 1 0 0 0 1 .8h9.2a1 1 0 0 0 1-.76L21 7H6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span class="header__cart-count" id="cart-count">0</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main id="conteudo-principal" class="main-content">
+        <article class="legal">
+            <h1 class="legal__title">Termos de Uso</h1>
+            <p class="legal__updated">Última atualização: outubro de 2026</p>
+
+            <p>Estes Termos de Uso regem a compra de cervejas artesanais neste site, em conformidade com o Código de Defesa do Consumidor (Lei nº 8.078/1990) e o Decreto nº 7.962/2013, que trata do comércio eletrônico. Ao criar uma conta ou fazer um pedido, você declara que leu e concorda com estes termos.</p>
+
+            <h2>1. Identificação do fornecedor</h2>
+            <ul>
+                <li><strong>Razão social:</strong> [PREENCHER — razão social da empresa]</li>
+                <li><strong>CNPJ:</strong> [PREENCHER — número do CNPJ]</li>
+                <li><strong>Endereço físico:</strong> [PREENCHER — endereço completo da fábrica/sede em Maringá, PR]</li>
+                <li><strong>E-mail de contato:</strong> <a href="mailto:contato@cervejariaexemplo.com.br">contato@cervejariaexemplo.com.br</a> <em>[PREENCHER — e-mail real]</em></li>
+                <li><strong>Telefone/WhatsApp:</strong> <em>[PREENCHER — telefone real]</em></li>
+            </ul>
+            <p class="legal__note">Essas informações são exigidas pelo art. 2º do Decreto nº 7.962/2013 e precisam estar sempre atualizadas e visíveis.</p>
+
+            <h2>2. Venda restrita a maiores de 18 anos</h2>
+            <p>Vendemos exclusivamente bebida alcoólica. É proibida a venda a menores de 18 anos, conforme o Estatuto da Criança e do Adolescente e a Lei nº 9.294/1996. Ao confirmar o aviso de idade e ao se cadastrar, você declara ter 18 anos ou mais. Essa declaração não substitui a verificação da idade no momento da entrega, que pode ser exigida por quem entregar o pedido.</p>
+            <p><strong>Beba com moderação.</strong> A venda e o consumo de bebidas alcoólicas para menores de idade constituem crime, conforme o art. 243 do Estatuto da Criança e do Adolescente (Lei nº 8.069/1990).</p>
+
+            <h2>3. Como funciona o pedido</h2>
+            <p>O cliente monta o carrinho no site, e os preços e cupons exibidos são apenas uma simulação no seu navegador: o pedido só é confirmado depois que a fábrica recebe a mensagem pelo WhatsApp e valida os valores. O pagamento e a entrega (ou retirada na fábrica) são combinados diretamente pelo WhatsApp. Antes de confirmar o pagamento, confira se o valor combinado corresponde ao pedido.</p>
+
+            <h2>4. Direito de arrependimento (art. 49 do CDC)</h2>
+            <p>Por se tratar de compra feita fora do estabelecimento comercial (internet), você tem o direito de desistir do pedido em até <strong>7 (sete) dias corridos</strong> a partir do recebimento do produto, sem precisar justificar o motivo, com reembolso integral dos valores pagos, inclusive frete, conforme o art. 49 da Lei nº 8.078/1990 (CDC) e o art. 5º do Decreto nº 7.962/2013.</p>
+            <p>Para exercer esse direito, entre em contato pelo e-mail ou WhatsApp informados no topo desta página, informando o número do pedido. O produto deve estar nas condições em que foi recebido. Esse direito não se aplica caso o produto já tenha sido consumido ou tenha seu selo de segurança violado, por se tratar de bebida alcoólica.</p>
+
+            <h2>5. Trocas por defeito</h2>
+            <p>Caso o produto chegue danificado, vencido ou com algum problema de qualidade, entre em contato em até 30 dias (produto não durável) para troca ou reembolso, conforme o art. 18 do CDC.</p>
+
+            <h2>6. Publicidade e consumo responsável</h2>
+            <p>Este site não direciona publicidade a menores de 18 anos e segue as restrições de propaganda de bebidas alcoólicas da Lei nº 9.294/1996. Todo o conteúdo sobre as cervejas tem caráter informativo sobre o produto.</p>
+
+            <h2>7. Alterações destes termos</h2>
+            <p>Podemos atualizar estes termos para refletir mudanças legais ou no funcionamento do site. A data da última atualização aparece no topo desta página.</p>
+
+            <h2>8. Dúvidas</h2>
+            <p>Fale com a gente pelo e-mail ou WhatsApp informados no item 1, ou consulte também a nossa <a href="privacidade.html">Política de Privacidade</a>.</p>
+
+            <p class="legal__note">Este documento é uma adequação técnica orientada e não substitui um parecer jurídico. Recomendamos a revisão por um advogado antes de operar com venda real de bebidas alcoólicas.</p>
+
+            <p><a href="index.html" class="legal__back">Voltar para a página inicial</a></p>
+        </article>
+    </main>
+
+    <footer id="contato" class="footer">
+        <div class="footer__container">
+            <!-- Informações Institucionais -->
+            <div class="footer__info">
+                <h2 class="footer__title">Cervejaria Artesanal</h2>
+                <address class="footer__address">
+                    <p>Maringá, PR - Brasil</p>
+                    <!-- TODO: troque pelos seus dados reais -->
+                    <p><a href="mailto:contato@cervejariaexemplo.com.br" class="footer__link">contato@cervejariaexemplo.com.br</a></p>
+                    <p><a href="tel:+5544999999999" class="footer__link">(44) 99999-9999</a></p>
+                </address>
+            </div>
+
+            <!-- Redes Sociais -->
+            <div class="footer__social">
+                <h3 class="footer__subtitle sr-only">Redes Sociais</h3>
+                <ul class="footer__social-list">
+                    <!-- TODO: troque o "#" pelos links reais dos seus perfis -->
+                    <li><a href="#" class="footer__social-link" aria-label="Siga-nos no Instagram">Instagram</a></li>
+                    <li><a href="#" class="footer__social-link" aria-label="Curta nossa página no Facebook">Facebook</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Aviso Legal -->
+        <div class="footer__legal">
+            <small class="footer__warning">Venda proibida para menores de 18 anos. Beba com moderação.</small>
+            <p class="footer__legal-links"><a href="termos.html" class="footer__link">Termos de Uso</a> &middot; <a href="privacidade.html" class="footer__link">Política de Privacidade</a></p>
+            <p class="footer__copyright">&copy; 2026 Cervejaria Artesanal. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+
+    <!-- Carrinho (painel lateral) -->
+    <dialog id="cart-dialog" class="cart" aria-labelledby="cart-title">
+        <div class="cart__panel">
+            <div class="cart__header">
+                <h2 id="cart-title" class="cart__title">Seu carrinho</h2>
+                <button type="button" class="cart__close" id="cart-close" aria-label="Fechar carrinho">&times;</button>
+            </div>
+
+            <p class="cart__empty" id="cart-empty">Seu carrinho está vazio. Escolha uma cerveja na vitrine para começar.</p>
+            <ul class="cart__items" id="cart-items"></ul>
+
+            <div class="cart__footer" id="cart-footer" hidden>
+                <div class="cart__coupon">
+                    <label for="cart-coupon-input" class="sr-only">Cupom de desconto</label>
+                    <input type="text" id="cart-coupon-input" class="cart__coupon-input" placeholder="Cupom de desconto" autocomplete="off">
+                    <button type="button" class="btn btn--secondary cart__coupon-btn" id="cart-coupon-apply">Aplicar</button>
+                </div>
+                <p class="cart__coupon-msg" id="cart-coupon-msg" role="status"></p>
+                <p class="cart__shipping" id="cart-shipping"></p>
+                <p class="cart__discount" id="cart-discount-row" hidden>
+                    <span>Cupom <strong id="cart-coupon-name"></strong></span>
+                    <span id="cart-discount"></span>
+                </p>
+                <p class="cart__total"><span>Total</span> <strong id="cart-total">R$ 0,00</strong></p>
+                <p class="cart__notice" id="cart-notice" role="status"></p>
+                <button type="button" class="btn btn--primary cart__checkout" id="cart-checkout">Finalizar pelo WhatsApp</button>
+                <button type="button" class="btn btn--secondary cart__clear" id="cart-clear">Esvaziar carrinho</button>
+            </div>
+
+            <div class="cart__success" id="cart-success" hidden>
+                <h3 class="cart__success-title">Pedido <span id="cart-success-number"></span> registrado</h3>
+                <p class="cart__success-text">Falta só um passo: envie o pedido pelo WhatsApp para combinar o pagamento e a entrega. Você acompanha o status em &ldquo;Minha conta&rdquo;.</p>
+                <a href="#" class="btn btn--primary" id="cart-success-whatsapp" target="_blank" rel="noopener">Enviar pelo WhatsApp</a>
+                <a href="conta.html#pedidos" class="btn btn--secondary">Ver meus pedidos</a>
+            </div>
+        </div>
+    </dialog>
+
+    <!-- Avisos para leitores de tela (ex.: "Item adicionado") -->
+    <p class="sr-only" id="cart-status" role="status"></p>
+
+    <script src="js/config.js" defer></script>
+    <script src="js/auth.js" defer></script>
+    <script src="js/main.js" defer></script>
+</body>
+</html>

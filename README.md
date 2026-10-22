@@ -11,6 +11,7 @@ cerveja-artesanal-vitrine/
 ├── index.html          # Página inicial (vitrine, filtros, sobre)
 ├── produto.html        # Página de produto (modelo: produto.html?id=...)
 ├── conta.html          # Entrar, criar conta, pedidos e dados do cliente
+├── termos.html         # Termos de Uso (CDC, direito de arrependimento)
 ├── privacidade.html    # Política de Privacidade (LGPD)
 ├── css/style.css       # Estilos globais e componentes (BEM)
 ├── js/
@@ -80,6 +81,20 @@ O cliente vê a mudança em "Minha conta" (botão "Atualizar" ou ao voltar para 
 4. Aparece o botão **Enviar pelo WhatsApp**, com o pedido pronto, para combinar pagamento e entrega.
 
 O pagamento continua sendo combinado por fora (WhatsApp/Pix). Por isso, confira o valor do pedido na hora de cobrar. Pagamento online dentro do site seria uma próxima etapa.
+
+## Segurança
+
+- **Limite de tentativas de login/cadastro:** o botão trava durante o envio (evita duplo clique) e há um limite local de 5 tentativas a cada 10 minutos por formulário, só para UX — a proteção real contra abuso é do Supabase. Se o Supabase devolver erro 429 (limite do servidor), aparece uma contagem regressiva de 60s. Para testar sem esperar o limite: em `localhost`/`127.0.0.1`, abra `conta.html?reset-auth=1` (nunca funciona fora de localhost).
+- **RLS no Supabase:** cada tabela (`profiles`, `orders`, `order_items`) só permite ao cliente ler/editar os próprios dados. Pedidos só são criados pela função `criar_pedido()`, que recalcula os totais no servidor (o carrinho do navegador não é confiável). Nunca use a chave `service_role` no site.
+- **Exclusão de conta:** em "Minha conta > Meus dados", o cliente pode excluir a própria conta e dados (função `excluir_conta()` no `schema.sql`, que precisa ter sido rodada no SQL Editor do Supabase).
+- **CSP:** todas as páginas têm uma Content-Security-Policy via `<meta>`, liberando apenas recursos do próprio site, o CDN do Supabase (`cdn.jsdelivr.net`) e as fontes do Google. Limitação: `frame-ancestors` não funciona por `<meta>` (precisaria de cabeçalho HTTP, que o GitHub Pages não permite configurar).
+- **SRI:** o script do `supabase-js` carregado via CDN é validado por hash (`integrity`) em `js/auth.js`. Se você trocar a versão em `SUPABASE_SRC`, recalcule o hash (ex.: baixando o arquivo e rodando `openssl dgst -sha384 -binary arquivo.js | openssl base64 -A`) e atualize `SUPABASE_SRI`.
+- **XSS:** todo dado dinâmico escrito na tela (pedidos, nome do produto etc.) passa por uma função de escape antes de virar HTML.
+
+## Jurídico (LGPD, CDC, venda de bebida alcoólica)
+
+- `termos.html` e `privacidade.html` têm campos marcados como `[PREENCHER]` (CNPJ, razão social, endereço, telefone, encarregado de dados). **Preencha com os dados reais da empresa antes de divulgar o site.**
+- Isso é uma adequação técnica orientada, não um parecer jurídico. Recomendamos revisão por um advogado antes de operar com venda real de bebidas alcoólicas.
 
 ## Roadmap
 - [x] **Etapa 1:** HTML semântico, acessibilidade e SEO.
