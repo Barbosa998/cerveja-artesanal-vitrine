@@ -196,6 +196,31 @@ import { nextAllowedStatuses, statusLabel } from './modules/orderStatus.js';
         return new Date(iso).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
     }
 
+    // Transforma uma linha de audit_log (acao + detalhes em jsonb) numa frase
+    // legível, em vez de despejar o JSON cru na tela.
+    function describeHistoryEntry(entry) {
+        const d = entry.detalhes || {};
+
+        if (entry.acao === 'confirmar_pagamento') {
+            const metodo = { pix: 'Pix', dinheiro: 'Dinheiro', outro: 'Outro' }[d.metodo] || d.metodo || '—';
+            const valor = Number.isFinite(d.valor) ? brl.format(d.valor) : '—';
+            return `Pagamento confirmado (${metodo}, ${valor})` + (d.nota ? ` — ${d.nota}` : '');
+        }
+
+        if (entry.acao === 'mudar_status') {
+            const base = d.de === d.para
+                ? `Dados do pedido atualizados (status seguiu "${statusLabel(d.de)}")`
+                : `Status mudou de "${statusLabel(d.de)}" para "${statusLabel(d.para)}"`;
+            const extras = [
+                d.rastreio ? `rastreio: ${d.rastreio}` : null,
+                d.nota ? `nota: ${d.nota}` : null
+            ].filter(Boolean);
+            return extras.length ? `${base} (${extras.join(', ')})` : base;
+        }
+
+        return entry.acao; // ação desconhecida (não deveria acontecer hoje): mostra só o nome
+    }
+
     function renderOrdersTable() {
         const body = $('#orders-table-body');
         const rows = filteredOrders();
@@ -313,8 +338,7 @@ import { nextAllowedStatuses, statusLabel } from './modules/orderStatus.js';
             } else {
                 list.replaceChildren(...history.map((entry) => {
                     const li = document.createElement('li');
-                    const detalhes = entry.detalhes ? JSON.stringify(entry.detalhes) : '';
-                    li.textContent = `${formatDateTime(entry.created_at)} — ${entry.acao} ${detalhes}`;
+                    li.textContent = `${formatDateTime(entry.created_at)} — ${describeHistoryEntry(entry)}`;
                     return li;
                 }));
             }

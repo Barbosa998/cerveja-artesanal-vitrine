@@ -151,8 +151,12 @@ begin
     end if;
     v_old := v_pedido.status;
 
+    -- "aguardando_pagamento" só pode virar "pago" pela função
+    -- admin_confirm_payment() (abaixo), nunca por aqui: assim todo pedido
+    -- marcado como pago tem, obrigatoriamente, um registro em "payments"
+    -- (valor, forma, quem confirmou). Por aqui, só dá para cancelar.
     v_allowed := case v_old
-        when 'aguardando_pagamento' then array['pago', 'cancelado']
+        when 'aguardando_pagamento' then array['cancelado']
         when 'pago'                 then array['em_preparo', 'cancelado']
         when 'em_preparo'           then array['enviado', 'cancelado']
         when 'enviado'              then array['entregue']

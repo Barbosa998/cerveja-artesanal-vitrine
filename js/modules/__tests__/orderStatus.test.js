@@ -3,7 +3,10 @@ import { nextAllowedStatuses, isValidTransition, statusLabel } from '../orderSta
 
 describe('nextAllowedStatuses', () => {
     it('segue a ordem normal do pedido', () => {
-        expect(nextAllowedStatuses('aguardando_pagamento')).toEqual(['pago', 'cancelado']);
+        // "pago" não é um status alcançável por aqui: só pelo fluxo de
+        // confirmar pagamento (admin_confirm_payment), que cria o registro
+        // em "payments". Por isso só "cancelado" aparece a partir daqui.
+        expect(nextAllowedStatuses('aguardando_pagamento')).toEqual(['cancelado']);
         expect(nextAllowedStatuses('pago')).toEqual(['em_preparo', 'cancelado']);
         expect(nextAllowedStatuses('em_preparo')).toEqual(['enviado', 'cancelado']);
         expect(nextAllowedStatuses('enviado')).toEqual(['entregue']);
@@ -25,8 +28,12 @@ describe('isValidTransition', () => {
     });
 
     it('permite avançar na ordem certa', () => {
-        expect(isValidTransition('aguardando_pagamento', 'pago')).toBe(true);
         expect(isValidTransition('em_preparo', 'enviado')).toBe(true);
+        expect(isValidTransition('pago', 'em_preparo')).toBe(true);
+    });
+
+    it('recusa marcar como "pago" por aqui — só pela confirmação de pagamento', () => {
+        expect(isValidTransition('aguardando_pagamento', 'pago')).toBe(false);
     });
 
     it('permite cancelar enquanto não foi enviado', () => {
