@@ -1,165 +1,152 @@
-# Cervejaria Artesanal - Vitrine Online
+<div align="center">
 
-## Descrição e Objetivo
-Vitrine virtual para venda de cervejas artesanais, com HTML5 semântico, acessibilidade (WCAG 2.2) e SEO técnico (Schema.org). O site é estático (GitHub Pages). O carrinho fica salvo no navegador; os pedidos podem ser registrados na conta do cliente (Supabase) e são finalizados pelo WhatsApp.
+# 🍺 Cervejaria Artesanal — Vitrine Online
 
-Site no ar: https://barbosa998.github.io/cerveja-artesanal-vitrine/
+Vitrine digital de cervejas artesanais construída com **HTML5, CSS3 e JavaScript puro (ES Modules)**, com backend leve em **Supabase** — foco em boas práticas de engenharia front-end, acessibilidade, performance e indexação, sem depender de frameworks ou de um bundler.
 
-**Acessibilidade e SEO:** 100/100 no Lighthouse em todas as páginas (exceto `conta.html`/`admin.html`, que são de propósito `noindex` por serem área logada). Detalhes e números em [`docs/AUDITORIA-A11Y-SEO.md`](docs/AUDITORIA-A11Y-SEO.md).
+[![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white)](https://developer.mozilla.org/docs/Web/HTML)
+[![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white)](https://developer.mozilla.org/docs/Web/CSS)
+[![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)](https://developer.mozilla.org/docs/Web/JavaScript)
+[![Supabase](https://img.shields.io/badge/Supabase-3FCF8E?style=for-the-badge&logo=supabase&logoColor=white)](https://supabase.com)
+[![Vitest](https://img.shields.io/badge/Vitest-6E9F18?style=for-the-badge&logo=vitest&logoColor=white)](https://vitest.dev)
+[![Lighthouse](https://img.shields.io/badge/Lighthouse-100%2F100-success?style=for-the-badge&logo=lighthouse&logoColor=white)](docs/AUDITORIA-A11Y-SEO.md)
 
-## Estrutura do Projeto
+**[🔗 Ver demo ao vivo](https://barbosa998.github.io/cerveja-artesanal-vitrine/)**
+
+<!-- TODO: trocar pelo GIF/print real da vitrine (ex.: assets/img/preview.gif) -->
+<p align="center">
+  <img src="https://via.placeholder.com/900x500/1A1D21/E08A2B?text=Preview+da+Vitrine" alt="Preview da interface da Cervejaria Artesanal" width="100%">
+</p>
+
+</div>
+
+---
+
+## 📋 Sobre o Projeto
+
+A Cervejaria Artesanal é uma vitrine online completa para venda de cervejas artesanais: catálogo, filtros, carrinho com cupom de desconto, área do cliente com histórico de pedidos e um painel administrativo — tudo construído **sem framework**, só HTML/CSS/JS, hospedado como site estático no GitHub Pages.
+
+O objetivo do projeto não é só "funcionar": é servir de vitrine técnica para três frentes que costumam ficar de lado em projetos pequenos —
+
+- **Engenharia front-end de verdade**, mesmo sem framework: lógica de negócio (carrinho, cupom, máquina de estados do pedido, busca de CEP) extraída em módulos ES puros e testados com Vitest, em vez de espalhada em funções presas ao DOM.
+- **Performance e indexação**: HTML5 semântico, dados estruturados (Schema.org), e uma auditoria real com Lighthouse documentada — com antes/depois e explicação de cada correção.
+- **Segurança e LGPD levadas a sério**, não só "funciona": Row Level Security no banco, CSP, SRI, máquina de estados validada no servidor, exclusão de conta e consentimento separado por finalidade.
+
+## ✨ Funcionalidades
+
+| Área | O que tem |
+|---|---|
+| **Vitrine** | Catálogo dinâmico (lido do Supabase, com reserva estática caso o backend esteja fora), filtros por estilo, verificação de idade |
+| **Carrinho** | Cupom de desconto, cálculo de frete grátis, busca de endereço por CEP ([ViaCEP](https://viacep.com.br)), **pagamento com Pix e confirmação automática** ([Mercado Pago](docs/PAGAMENTOS.md), via Edge Functions) |
+| **Conta do cliente** | Cadastro/login (Supabase Auth), histórico de pedidos com linha do tempo de status, exclusão de conta (LGPD) |
+| **Painel administrativo** | Confirmar pagamento, avançar status do pedido, gerenciar produtos/estoque, exportar pedidos em CSV, histórico de auditoria |
+| **Jurídico** | Termos de Uso e Política de Privacidade com consentimento separado por finalidade (cadastro, newsletter) |
+
+## 🎯 Destaques Técnicos
+
+### HTML5 Semântico
+
+O documento usa as landmarks semânticas corretas em vez de `<div>` genéricas — `<header>`, `<nav aria-label="Navegação principal">`, `<main id="conteudo-principal">`, `<section aria-labelledby="...">` para cada bloco de conteúdo (vitrine, sobre, benefícios, newsletter) e `<footer>` para as informações institucionais. Os cards de produto são `<article class="product-card">`, já que cada um é um conteúdo independente e republicável por si só — exatamente o caso de uso que a tag `<article>` foi desenhada para cobrir.
+
+Isso importa por dois motivos práticos, não só "boa prática no papel": leitores de tela conseguem pular direto para a seção que importa (as `aria-labelledby` dão nome a cada landmark), e o HTML continua legível e fácil de manter mesmo sem olhar o CSS — a estrutura do documento já conta a história da página.
+
+### SEO e Dados Estruturados (Schema.org)
+
+Os dados estruturados são implementados em **JSON-LD** (`<script type="application/ld+json">`), não em microdados inline (`itemscope`/`itemprop`) — essa é a forma que o próprio Google recomenda hoje: fica num bloco único, não precisa espalhar atributos por cada elemento do HTML, e não quebra se o layout mudar.
+
+- `index.html` declara um `@graph` com os tipos `Brewery` (dados institucionais) e `Product` (oferta em destaque).
+- `produto.html` (em `js/produto.js`) **gera o JSON-LD dinamicamente por produto**, montando `name`, `description`, `image` e `offers.price` a partir do catálogo — então cada página de produto tem seus próprios dados estruturados corretos, sem precisar duplicar HTML à mão.
+
+O resultado: Google (e qualquer motor que leia Schema.org) consegue montar *rich snippets* de produto — preço, disponibilidade, imagem — direto no resultado de busca, sem precisar raspar o HTML visual.
+
+### Performance e Acessibilidade — números de verdade
+
+Nada de "deve estar bom": a vitrine tem auditoria real com [Lighthouse](docs/AUDITORIA-A11Y-SEO.md), medida localmente, com antes/depois documentado — inclusive um CLS alto encontrado e corrigido durante o próprio desenvolvimento.
+
+| Página | Performance | Acessibilidade | Boas práticas | SEO |
+|---|---|---|---|---|
+| `index.html` | 81 | **100** | **100** | **100** |
+| `produto.html` | 69 | **100** | **100** | **100** |
+| `conta.html` | 87 | **100** | **100** | 55\* |
+
+\* `conta.html` é `noindex` de propósito (área logada) — o Lighthouse penaliza isso como SEO, mas é a decisão correta.
+
+### Arquitetura sem framework, mas nada "espaguete"
+
+- **ES Modules**: a lógica de negócio pura (carrinho, cupom, máquina de estados do pedido, validação de CEP) vive em `js/modules/`, sem tocar no DOM — só funções que recebem dados e devolvem dados. Isso é o que torna possível testar com **Vitest** sem precisar simular um navegador inteiro.
+- **Supabase como backend**: autenticação, banco de dados com Row Level Security e funções RPC fazem o papel que normalmente cairia num servidor Node — todo cálculo sensível (total do pedido, transição de status, confirmação de pagamento) acontece no banco, nunca confiando no que vem do navegador.
+- **Progressivamente aprimorado**: a vitrine funciona com os produtos padrão mesmo se o Supabase cair; o carrinho é salvo em `localStorage` e sobrevive a um recarregamento de página.
+
+## 📁 Estrutura de Diretórios
+
 ```
 cerveja-artesanal-vitrine/
-├── index.html              # Página inicial (vitrine, filtros, sobre)
-├── produto.html            # Página de produto (modelo: produto.html?id=...)
-├── conta.html              # Entrar, criar conta, pedidos e dados do cliente
-├── admin.html              # Painel administrativo (pedidos, pagamentos, produtos)
-├── termos.html             # Termos de Uso (CDC, direito de arrependimento)
-├── privacidade.html        # Política de Privacidade (LGPD)
+├── index.html                  # Página inicial (vitrine, filtros, sobre)
+├── produto.html                # Página de produto (produto.html?id=...)
+├── conta.html                  # Login, cadastro, pedidos e dados do cliente
+├── admin.html                  # Painel administrativo
+├── termos.html                 # Termos de Uso
+├── privacidade.html            # Política de Privacidade (LGPD)
+│
 ├── css/
-│   ├── style.css           # Estilos globais e componentes (BEM)
-│   └── admin.css           # Estilos específicos do painel administrativo
+│   ├── style.css                # Estilos globais e componentes (metodologia BEM)
+│   └── admin.css                # Estilos do painel administrativo
+│
 ├── js/
-│   ├── config.js           # WhatsApp e chaves do Supabase  <- você edita
-│   ├── produtos.js         # Produtos de reserva (usados se o Supabase falhar)  <- você edita
-│   ├── catalog.js          # Busca os produtos no Supabase (com reserva de produtos.js)
-│   ├── main.js              # Idade, vitrine, filtros, carrinho, cupom e finalização do pedido (módulo ES)
-│   ├── produto.js          # Monta a página de produto (carrossel de fotos)
-│   ├── auth.js              # Ponte com o Supabase
-│   ├── conta.js             # Tela "Minha conta"
-│   ├── admin.js             # Painel administrativo (módulo ES)
-│   └── modules/              # Regras de negócio puras (sem DOM), com testes
-│       ├── cart.js           # Somar, validar e mudar o carrinho
-│       ├── coupons.js        # Calcular desconto de cupom
-│       ├── orderStatus.js    # Máquina de estados do pedido (espelha o banco)
-│       ├── viacep.js         # Busca de endereço por CEP (API ViaCEP)
-│       └── __tests__/        # Testes (Vitest) dos módulos acima
+│   ├── config.js                 # Configuração pública (URL/chave do Supabase)
+│   ├── produtos.js               # Catálogo de reserva (usado se o Supabase falhar)
+│   ├── catalog.js                # Busca os produtos no Supabase
+│   ├── main.js                   # Vitrine, carrinho, cupom, checkout (módulo ES)
+│   ├── produto.js                # Monta a página de produto + JSON-LD dinâmico
+│   ├── auth.js                   # Ponte com o Supabase Auth
+│   ├── conta.js                  # Tela "Minha conta"
+│   ├── admin.js                  # Painel administrativo (módulo ES)
+│   └── modules/                  # Regras de negócio puras, com testes (Vitest)
+│       ├── cart.js
+│       ├── coupons.js
+│       ├── orderStatus.js
+│       ├── viacep.js
+│       └── __tests__/
+│
 ├── supabase/
-│   ├── schema.sql           # Tabelas e regras de segurança do banco (clientes/pedidos)
-│   └── schema_admin.sql     # Migração do painel: admins, produtos, pagamentos, histórico
-├── assets/img/              # Imagens (WebP, JPG, SVG)
-├── package.json              # Só para os testes (Vitest); o site em si não precisa de build
+│   ├── schema.sql                # Tabelas e RLS: clientes e pedidos
+│   ├── schema_admin.sql          # Painel admin: produtos, pagamentos, auditoria
+│   └── functions/                # Edge Functions (pagamento via Pix)
+│
+├── docs/
+│   ├── OPERACAO.md               # Guia completo de setup, Supabase e segurança
+│   ├── AUDITORIA-A11Y-SEO.md     # Auditoria Lighthouse com antes/depois
+│   └── PAGAMENTOS.md             # Arquitetura do Pix (Mercado Pago): diagrama, segurança, setup
+│
+├── assets/img/                   # Imagens do catálogo
+├── package.json                  # Só para os testes (Vitest) — o site não tem build
 └── README.md
 ```
 
-## Como Rodar Localmente
-1. `git clone https://github.com/Barbosa998/cerveja-artesanal-vitrine.git`
-2. `cd cerveja-artesanal-vitrine`
-3. Sirva a pasta com um servidor local — use a extensão *Live Server* do VS Code, ou `python -m http.server 5500` — e abra `index.html` por ele (ex.: `http://127.0.0.1:5500/`).
-   Abrir o arquivo direto do disco (`file://...`) **não funciona**: tanto a área do cliente (Supabase) quanto `js/main.js`/`js/admin.js` (módulos ES, que o navegador bloqueia em `file://` por CORS) precisam de um endereço `http://`.
+> 📘 Setup completo do Supabase, variáveis de ambiente, segurança e painel admin: veja **[docs/OPERACAO.md](docs/OPERACAO.md)**.
 
-## Testes (regras de negócio)
+## 🚀 Como Visualizar Localmente
 
-O site em si não tem build (continua HTML/CSS/JS puro, servido como está pelo GitHub Pages). Mas as regras que valem a pena testar isoladamente — carrinho, cupom, máquina de estados do pedido — ficam em `js/modules/`, como funções puras (sem DOM, sem `localStorage`), e têm testes com [Vitest](https://vitest.dev):
+```bash
+git clone https://github.com/Barbosa998/cerveja-artesanal-vitrine.git
+cd cerveja-artesanal-vitrine
+python -m http.server 5500
+# ou: use a extensão Live Server do VS Code
+```
+
+Abra `http://127.0.0.1:5500/` no navegador. **Importante:** abrir o `index.html` direto do disco (`file://...`) não funciona — o projeto usa módulos ES (`<script type="module">`), que o navegador bloqueia por CORS fora de um servidor.
+
+Para rodar os testes das regras de negócio:
 
 ```bash
 npm install
 npm test
 ```
 
-`js/main.js` e `js/admin.js` importam essas funções (são `<script type="module">`), então rodar como módulo ES é obrigatório — não dá mais para abrir `index.html` direto do disco (`file://`); use sempre um servidor local (Live Server, `python -m http.server` etc.), como aliás a área do cliente já exigia.
+## 👤 Autor
 
-## Configuração rápida (js/config.js)
-- `whatsappNumber`: número que recebe os pedidos (país + DDD + número, só dígitos).
-- `supabaseUrl` e `supabaseAnonKey`: ativam login, cadastro e pedidos (veja abaixo). Vazios = o botão "Entrar" some e o carrinho envia direto pelo WhatsApp.
+**Vinicius Barbosa Alves**
 
-Outras opções ficam no topo do `js/main.js`: `freeShippingFrom` (frete grátis), `coupons` (cupons de desconto) e `newsletterEndpoint`.
-
-**Produtos:** depois de rodar `supabase/schema_admin.sql` (veja a seção do painel administrativo, abaixo), edite os produtos pelo `admin.html`, não mais em `js/produtos.js`. Esse arquivo continua existindo só como reserva, usada automaticamente se o Supabase não estiver configurado ou a tabela `produtos` ainda não existir.
-
-## Ativar a área do cliente (Supabase)
-
-### 1. Criar o projeto
-1. Crie uma conta grátis em https://supabase.com e clique em **New project** (escolha uma senha forte para o banco e a região mais próxima, ex.: São Paulo).
-2. Aguarde o projeto ficar pronto (1 a 2 minutos).
-
-### 2. Criar as tabelas
-1. No menu lateral, abra **SQL Editor** > **New query**.
-2. Cole todo o conteúdo do arquivo `supabase/schema.sql` e clique em **Run**.
-3. Deve aparecer "Success". (Pode rodar de novo sem perder dados.)
-
-### 3. Copiar as chaves para o site
-1. Vá em **Project Settings** > **API** (ou **API Keys**).
-2. Copie a **Project URL** e a chave **anon public**.
-3. Cole em `js/config.js`, nos campos `supabaseUrl` e `supabaseAnonKey`.
-   Nunca use a chave `service_role` no site.
-
-### 4. Liberar o endereço do site (e-mails de confirmação e senha)
-1. Vá em **Authentication** > **URL Configuration**.
-2. Em **Site URL**, coloque `https://barbosa998.github.io/cerveja-artesanal-vitrine/`.
-3. Em **Redirect URLs**, adicione `https://barbosa998.github.io/cerveja-artesanal-vitrine/**` (e, para testar localmente, `http://127.0.0.1:5500/**`).
-
-### 5. Conferir a confirmação de e-mail
-Em **Authentication** > **Sign In / Providers** > **Email**, a opção "Confirm email" vem ligada: o cliente recebe um link para ativar a conta. Isso é o recomendado. Para testes rápidos você pode desligar, mas ligue de novo antes de divulgar.
-
-> Atenção: o envio de e-mails do plano grátis tem limite baixo por hora. Quando o site tiver movimento, configure um serviço de e-mail próprio em **Authentication** > **SMTP Settings**.
-
-## Painel administrativo (admin.html)
-
-O painel em `admin.html` substitui o Table Editor para o dia a dia: confirmar pagamento, mudar o status do pedido, preencher o código de rastreio, editar produtos/estoque e exportar um CSV dos pedidos.
-
-### 1. Rodar a migração
-No **SQL Editor** do Supabase, cole e rode todo o conteúdo de `supabase/schema_admin.sql` (depois de já ter rodado `supabase/schema.sql`). Ele cria as tabelas do painel e **copia os 6 produtos de `js/produtos.js` para a tabela `produtos`** (só na primeira vez — depois disso, edite os produtos pelo painel, não mais pelo arquivo).
-
-### 2. Virar administrador
-Não existe tela para isso (de propósito: ninguém vira admin só porque acessou uma URL). Crie sua conta normalmente pelo site (`conta.html`) e depois, no SQL Editor, rode (trocando o e-mail):
-
-```sql
-insert into public.admins (user_id)
-select id from auth.users where email = 'SEU-EMAIL-AQUI@exemplo.com';
-```
-
-### 3. Entrar no painel
-Abra `admin.html`, entre com essa mesma conta. Quem não está na tabela `admins` vê "Acesso restrito" — o front só mostra ou esconde telas; quem decide de verdade é a política de segurança (RLS) do banco.
-
-### 4. Confirmar um pagamento (ex.: Pix pelo WhatsApp)
-Na aba **Pedidos**, abra o pedido "Aguardando pagamento", confira o comprovante fora do site, preencha a forma e o valor recebido e confirme. Se o valor for diferente do total do pedido, o painel pede uma justificativa antes de deixar confirmar.
-
-### 5. Avançar o status / preencher rastreio
-No mesmo pedido, escolha o próximo status (só aparecem os status válidos a partir do atual — o banco recusa qualquer pulo inválido, mesmo se alguém tentar pela API direto) e o código de rastreio. O cliente vê a mudança em "Minha conta".
-
-### 6. Históric
-Cada confirmação de pagamento ou mudança de status fica registrada (quem, quando, o quê) e aparece na aba "Histórico" do pedido. Isso não pode ser editado nem apagado pela própria interface — nem por um admin.
-
-### Segurança do painel (o que ainda falta, se quiser reforçar)
-- O login do admin é o mesmo e-mail/senha do Supabase Auth. Para uma conta que mexe com confirmação de pagamento, recomendamos ativar **MFA (autenticação em duas etapas)** para essa conta em **Authentication > Providers** no painel do Supabase. Isso **não foi configurado automaticamente** aqui: é uma configuração manual, no painel do Supabase, fora do código.
-- Troque a senha da conta admin periodicamente e não a reaproveite de outro serviço.
-
-## Como funciona o pedido
-1. O cliente monta o carrinho (que fica guardado no navegador). No carrinho, pode digitar o CEP: o endereço (rua, bairro, cidade, UF) é preenchido automaticamente pela [API pública do ViaCEP](https://viacep.com.br) — sem chave, sem custo. É opcional; dá pra combinar "retirar na fábrica" pelo WhatsApp em vez de preencher.
-2. Ao finalizar, se não estiver logado, é convidado a entrar ou criar conta e volta para onde estava.
-3. O pedido é salvo na conta dele com o status "Aguardando pagamento".
-4. Aparece o botão **Enviar pelo WhatsApp**, com o pedido (e o endereço, se foi preenchido) pronto, para combinar pagamento e entrega.
-
-O pagamento continua sendo combinado por fora (WhatsApp/Pix). Por isso, confira o valor do pedido na hora de cobrar. Pagamento online dentro do site seria uma próxima etapa.
-
-### Busca de CEP (ViaCEP)
-- Implementada em `js/modules/viacep.js` (funções puras testadas: `normalizeCep`, `isValidCep`) e ligada ao carrinho em `js/main.js`.
-- Espera 500ms depois da última tecla digitada antes de consultar (debounce), cancela uma busca anterior ainda em andamento se o CEP mudar de novo (`AbortController`), e guarda em memória os CEPs já consultados nesta visita (não refaz a mesma chamada à toa).
-- Valida o formato (8 dígitos) **antes** de chamar a API — um CEP mal formatado faz a API devolver uma página HTML de erro em vez de JSON, então validar antes evita isso.
-- Mensagens de erro acessíveis (`aria-live="polite"`) distinguem "CEP não encontrado" de falha de rede, e sempre deixam claro que dá pra combinar o endereço pelo WhatsApp mesmo assim — o CEP nunca é obrigatório para finalizar o pedido.
-- O endereço **não é salvo no banco**: só entra na mensagem do WhatsApp (como já acontecia, de forma manual, antes desta funcionalidade). Guardá-lo no pedido/perfil é um próximo passo natural, se fizer sentido.
-
-## Segurança
-
-- **Limite de tentativas de login/cadastro:** o botão trava durante o envio (evita duplo clique) e há um limite local de 5 tentativas a cada 10 minutos por formulário, só para UX — a proteção real contra abuso é do Supabase. Se o Supabase devolver erro 429 (limite do servidor), aparece uma contagem regressiva de 60s. Para testar sem esperar o limite: em `localhost`/`127.0.0.1`, abra `conta.html?reset-auth=1` (nunca funciona fora de localhost).
-- **RLS no Supabase:** cada tabela (`profiles`, `orders`, `order_items`) só permite ao cliente ler/editar os próprios dados; admin lê tudo (`is_admin()`). Pedidos só são criados pela função `criar_pedido()`, que recalcula os totais no servidor (o carrinho do navegador não é confiável). Mudar status e confirmar pagamento só é possível pelas funções `admin_set_order_status()`/`admin_confirm_payment()`, nunca por `UPDATE` direto — e ambas conferem `is_admin()` no servidor antes de fazer qualquer coisa. A tabela `produtos` é de leitura pública só para quem está `ativo`; escrever nela exige ser admin. Nunca use a chave `service_role` no site.
-- **Exclusão de conta:** em "Minha conta > Meus dados", o cliente pode excluir a própria conta e dados (função `excluir_conta()` no `schema.sql`, que precisa ter sido rodada no SQL Editor do Supabase).
-- **CSP:** todas as páginas têm uma Content-Security-Policy via `<meta>`, liberando apenas recursos do próprio site, o CDN do Supabase (`cdn.jsdelivr.net`) e as fontes do Google. Limitação: `frame-ancestors` não funciona por `<meta>` (precisaria de cabeçalho HTTP, que o GitHub Pages não permite configurar).
-- **SRI:** o script do `supabase-js` carregado via CDN é validado por hash (`integrity`) em `js/auth.js`. Se você trocar a versão em `SUPABASE_SRC`, recalcule o hash (ex.: baixando o arquivo e rodando `openssl dgst -sha384 -binary arquivo.js | openssl base64 -A`) e atualize `SUPABASE_SRI`.
-- **XSS:** todo dado dinâmico escrito na tela (pedidos, nome do produto etc.) passa por uma função de escape antes de virar HTML.
-
-## Jurídico (LGPD, CDC, venda de bebida alcoólica)
-
-- `termos.html` e `privacidade.html` têm campos marcados como `[PREENCHER]` (CNPJ, razão social, endereço, telefone, encarregado de dados). **Preencha com os dados reais da empresa antes de divulgar o site.**
-- Isso é uma adequação técnica orientada, não um parecer jurídico. Recomendamos revisão por um advogado antes de operar com venda real de bebidas alcoólicas.
-
-## Roadmap
-- [x] **Etapa 1:** HTML semântico, acessibilidade e SEO.
-- [x] **Etapa 2:** CSS Vanilla (BEM, variáveis, Flexbox/Grid).
-- [x] **Etapa 3:** Verificação de idade, filtros, carrinho e cupom.
-- [x] **Etapa 4:** Páginas de produto com carrossel de fotos.
-- [x] **Etapa 5:** Área do cliente (login, cadastro, pedidos e status).
-- [x] **Etapa 6:** Painel de administração (pedidos, pagamentos, produtos/estoque).
-- [ ] **Etapa 7:** Otimização de performance (imagens WebP).
-- [ ] **Etapa 8:** Dados reais (telefone, e-mail, redes sociais, domínio próprio).
+<!-- TODO: trocar pelos links reais -->
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://linkedin.com/in/SEU-USUARIO)
+[![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Barbosa998)

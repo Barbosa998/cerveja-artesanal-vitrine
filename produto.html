@@ -163,8 +163,24 @@
 
             <div class="cart__success" id="cart-success" hidden>
                 <h3 class="cart__success-title">Pedido <span id="cart-success-number"></span> registrado</h3>
-                <p class="cart__success-text">Falta só um passo: envie o pedido pelo WhatsApp para combinar o pagamento e a entrega. Você acompanha o status em &ldquo;Minha conta&rdquo;.</p>
-                <a href="#" class="btn btn--primary" id="cart-success-whatsapp" target="_blank" rel="noopener">Enviar pelo WhatsApp</a>
+                <p class="cart__success-text">Pague agora com Pix e a confirmação é automática. Prefere combinar por fora? Dá pra enviar pelo WhatsApp também.</p>
+
+                <div class="cart__pix" id="cart-pix">
+                    <button type="button" class="btn btn--primary" id="cart-pix-btn">Pagar com Pix</button>
+                    <p class="cart__pix-msg" id="cart-pix-msg" role="status" aria-live="polite"></p>
+
+                    <div class="cart__pix-qr" id="cart-pix-qr" hidden>
+                        <img id="cart-pix-qr-img" class="cart__pix-qr-img" alt="QR Code do Pix para pagar o pedido" width="220" height="220">
+                        <div class="cart__pix-code-row" id="cart-pix-code-row">
+                            <label for="cart-pix-code" class="sr-only">Código Pix copia e cola</label>
+                            <input type="text" id="cart-pix-code" class="field__input" readonly>
+                            <button type="button" class="btn btn--secondary" id="cart-pix-copy">Copiar código</button>
+                        </div>
+                        <p class="cart__pix-status" id="cart-pix-status" role="status" aria-live="polite">Aguardando pagamento...</p>
+                    </div>
+                </div>
+
+                <a href="#" class="btn btn--secondary" id="cart-success-whatsapp" target="_blank" rel="noopener">Enviar pelo WhatsApp</a>
                 <a href="conta.html#pedidos" class="btn btn--secondary">Ver meus pedidos</a>
             </div>
         </div>
