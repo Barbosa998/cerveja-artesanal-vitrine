@@ -118,7 +118,7 @@ Na aba **Pedidos**, abra o pedido "Aguardando pagamento", confira o comprovante 
 ### 5. Avançar o status / preencher rastreio
 No mesmo pedido, escolha o próximo status (só aparecem os status válidos a partir do atual — o banco recusa qualquer pulo inválido, mesmo se alguém tentar pela API direto) e o código de rastreio. O cliente vê a mudança em "Minha conta".
 
-### 6. Histórico
+### 6. Históric
 Cada confirmação de pagamento ou mudança de status fica registrada (quem, quando, o quê) e aparece na aba "Histórico" do pedido. Isso não pode ser editado nem apagado pela própria interface — nem por um admin.
 
 ### Segurança do painel (o que ainda falta, se quiser reforçar)
