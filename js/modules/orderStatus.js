@@ -18,7 +18,10 @@ export const STATUS_LABELS = {
 };
 
 const NEXT_STATUS = {
-    aguardando_pagamento: ['pago', 'cancelado'],
+    // "aguardando_pagamento" só vira "pago" pelo fluxo de confirmar
+    // pagamento (que cria o registro em "payments"), nunca por aqui — por
+    // isso não aparece "pago" entre as opções, só cancelar.
+    aguardando_pagamento: ['cancelado'],
     pago: ['em_preparo', 'cancelado'],
     em_preparo: ['enviado', 'cancelado'],
     enviado: ['entregue'],
