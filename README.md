@@ -21,23 +21,40 @@ cerveja-artesanal-vitrine/
 │   ├── config.js           # WhatsApp e chaves do Supabase  <- você edita
 │   ├── produtos.js         # Produtos de reserva (usados se o Supabase falhar)  <- você edita
 │   ├── catalog.js          # Busca os produtos no Supabase (com reserva de produtos.js)
-│   ├── main.js              # Idade, vitrine, filtros, carrinho, cupom e finalização do pedido
+│   ├── main.js              # Idade, vitrine, filtros, carrinho, cupom e finalização do pedido (módulo ES)
 │   ├── produto.js          # Monta a página de produto (carrossel de fotos)
 │   ├── auth.js              # Ponte com o Supabase
 │   ├── conta.js             # Tela "Minha conta"
-│   └── admin.js             # Painel administrativo
+│   ├── admin.js             # Painel administrativo (módulo ES)
+│   └── modules/              # Regras de negócio puras (sem DOM), com testes
+│       ├── cart.js           # Somar, validar e mudar o carrinho
+│       ├── coupons.js        # Calcular desconto de cupom
+│       ├── orderStatus.js    # Máquina de estados do pedido (espelha o banco)
+│       └── __tests__/        # Testes (Vitest) dos três módulos acima
 ├── supabase/
 │   ├── schema.sql           # Tabelas e regras de segurança do banco (clientes/pedidos)
 │   └── schema_admin.sql     # Migração do painel: admins, produtos, pagamentos, histórico
 ├── assets/img/              # Imagens (WebP, JPG, SVG)
+├── package.json              # Só para os testes (Vitest); o site em si não precisa de build
 └── README.md
 ```
 
 ## Como Rodar Localmente
 1. `git clone https://github.com/Barbosa998/cerveja-artesanal-vitrine.git`
 2. `cd cerveja-artesanal-vitrine`
-3. Abra o `index.html` no navegador ou use a extensão *Live Server* do VS Code.
-   (A área do cliente precisa de um endereço `http://`, então use o Live Server para testá-la.)
+3. Sirva a pasta com um servidor local — use a extensão *Live Server* do VS Code, ou `python -m http.server 5500` — e abra `index.html` por ele (ex.: `http://127.0.0.1:5500/`).
+   Abrir o arquivo direto do disco (`file://...`) **não funciona**: tanto a área do cliente (Supabase) quanto `js/main.js`/`js/admin.js` (módulos ES, que o navegador bloqueia em `file://` por CORS) precisam de um endereço `http://`.
+
+## Testes (regras de negócio)
+
+O site em si não tem build (continua HTML/CSS/JS puro, servido como está pelo GitHub Pages). Mas as regras que valem a pena testar isoladamente — carrinho, cupom, máquina de estados do pedido — ficam em `js/modules/`, como funções puras (sem DOM, sem `localStorage`), e têm testes com [Vitest](https://vitest.dev):
+
+```bash
+npm install
+npm test
+```
+
+`js/main.js` e `js/admin.js` importam essas funções (são `<script type="module">`), então rodar como módulo ES é obrigatório — não dá mais para abrir `index.html` direto do disco (`file://`); use sempre um servidor local (Live Server, `python -m http.server` etc.), como aliás a área do cliente já exigia.
 
 ## Configuração rápida (js/config.js)
 - `whatsappNumber`: número que recebe os pedidos (país + DDD + número, só dígitos).

@@ -1,5 +1,5 @@
 /**
- * Painel administrativo (admin.html).
+ * Painel administrativo (admin.html). Módulo ES.
  *
  * Importante: esconder esta página não protege nada — em site estático,
  * admin.html e admin.js são públicos como qualquer outro arquivo. Quem
@@ -8,6 +8,8 @@
  * pagamento, editar produto) passa pela política RLS ou por uma função do
  * Supabase que confere is_admin() no servidor antes de fazer qualquer coisa.
  */
+import { nextAllowedStatuses, statusLabel } from './modules/orderStatus.js';
+
 (() => {
     'use strict';
 
@@ -64,28 +66,6 @@
             button.textContent = original;
         }
     }
-
-    /* ======================================================================
-       MÁQUINA DE ESTADOS (espelha o que admin_set_order_status valida no banco;
-       aqui é só para não oferecer opções que o servidor vai recusar)
-       ====================================================================== */
-    const STATUS_LABELS = {
-        aguardando_pagamento: 'Aguardando pagamento',
-        pago: 'Pago',
-        em_preparo: 'Em preparo',
-        enviado: 'Enviado',
-        entregue: 'Entregue',
-        cancelado: 'Cancelado'
-    };
-
-    const NEXT_STATUS = {
-        aguardando_pagamento: ['pago', 'cancelado'],
-        pago: ['em_preparo', 'cancelado'],
-        em_preparo: ['enviado', 'cancelado'],
-        enviado: ['entregue'],
-        entregue: [],
-        cancelado: []
-    };
 
     /* ======================================================================
        LOGIN / SESSÃO
@@ -238,7 +218,7 @@
             tdData.textContent = formatDateTime(order.created_at);
 
             const tdStatus = document.createElement('td');
-            tdStatus.textContent = STATUS_LABELS[order.status] || order.status;
+            tdStatus.textContent = statusLabel(order.status);
 
             const tdTotal = document.createElement('td');
             tdTotal.textContent = brl.format(Number(order.total));
@@ -285,12 +265,12 @@
         statusSelect.replaceChildren();
         const currentOption = document.createElement('option');
         currentOption.value = order.status;
-        currentOption.textContent = `${STATUS_LABELS[order.status] || order.status} (atual)`;
+        currentOption.textContent = `${statusLabel(order.status)} (atual)`;
         statusSelect.append(currentOption);
-        (NEXT_STATUS[order.status] || []).forEach((status) => {
+        nextAllowedStatuses(order.status).forEach((status) => {
             const opt = document.createElement('option');
             opt.value = status;
-            opt.textContent = STATUS_LABELS[status] || status;
+            opt.textContent = statusLabel(status);
             statusSelect.append(opt);
         });
         $('#order-tracking-input').value = order.codigo_rastreio || '';
@@ -359,7 +339,7 @@
             const note = $('#order-status-note').value.trim();
             const confirmMsg = newStatus === 'cancelado'
                 ? 'Tem certeza que quer cancelar este pedido?'
-                : `Mudar o status para "${STATUS_LABELS[newStatus] || newStatus}"?`;
+                : `Mudar o status para "${statusLabel(newStatus)}"?`;
             if (!window.confirm(confirmMsg)) return;
 
             withBusy(event.target, async () => {

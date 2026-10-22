@@ -1,13 +1,27 @@
 /**
- * Arquivo Principal de JavaScript
+ * Arquivo Principal de JavaScript (módulo ES).
  * Responsável por:
  * - Controle do Dialog de verificação de idade
- * - Interatividade dos Filtros
+ * - Desenhar a vitrine e os filtros
  * - Lógica do Carrinho de Compras (salvo no localStorage) e Cupom de Desconto
+ *   — as regras puras (somar, validar, calcular desconto) vivem em
+ *   js/modules/cart.js e js/modules/coupons.js, com testes em
+ *   js/modules/__tests__/. Aqui só a parte que mexe no DOM/localStorage.
  * - Expõe window.vitrine.addToCart para a página de produto
  * - Finalização do pedido: salva na conta do cliente (Supabase) e envia pelo WhatsApp
  * - Newsletter (opcional, só aparece se houver um endpoint configurado)
  */
+import {
+    sanitizeCart,
+    addItem as addItemToCart,
+    changeQty as changeCartQty,
+    removeItem as removeCartItem,
+    totalItems as cartTotalItems,
+    totalPrice as cartTotalPrice,
+    MAX_QTY
+} from './modules/cart.js';
+import { findCouponRate, calculateDiscount, calculateFinalPrice } from './modules/coupons.js';
+
 (() => {
     'use strict';
 
@@ -37,8 +51,6 @@
         age: 'vitrine:idade-verificada',
         cart: 'vitrine:carrinho'
     };
-
-    const MAX_QTY = 99;
 
     /* ======================================================================
        UTILITÁRIOS
@@ -233,16 +245,7 @@
         /* ---------- Persistência ---------- */
         function loadCart() {
             try {
-                const parsed = JSON.parse(storage.get(STORAGE_KEYS.cart) || '[]');
-                if (!Array.isArray(parsed)) return [];
-                return parsed.filter((item) =>
-                    item &&
-                    typeof item.id === 'string' &&
-                    typeof item.name === 'string' &&
-                    Number.isFinite(item.price) &&
-                    Number.isInteger(item.qty) &&
-                    item.qty > 0
-                );
+                return sanitizeCart(JSON.parse(storage.get(STORAGE_KEYS.cart) || '[]'));
             } catch (error) {
                 return [];
             }
@@ -252,14 +255,11 @@
             storage.set(STORAGE_KEYS.cart, JSON.stringify(cart));
         }
 
-        /* ---------- Cálculos ---------- */
-        const totalItems = () => cart.reduce((sum, item) => sum + item.qty, 0);
-        const totalPrice = () => cart.reduce((sum, item) => sum + item.price * item.qty, 0);
-        const discountValue = () => {
-            if (!activeCoupon || !CONFIG.coupons[activeCoupon]) return 0;
-            return totalPrice() * CONFIG.coupons[activeCoupon];
-        };
-        const finalPrice = () => Math.max(0, totalPrice() - discountValue());
+        /* ---------- Cálculos (regras puras importadas de js/modules/) ---------- */
+        const totalItems = () => cartTotalItems(cart);
+        const totalPrice = () => cartTotalPrice(cart);
+        const discountValue = () => calculateDiscount(totalPrice(), findCouponRate(activeCoupon, CONFIG.coupons));
+        const finalPrice = () => calculateFinalPrice(totalPrice(), discountValue());
 
         function announce(message) {
             statusEl.textContent = '';
@@ -267,35 +267,24 @@
             window.setTimeout(() => { statusEl.textContent = message; }, 50);
         }
 
-        /* ---------- Ações ---------- */
+        /* ---------- Ações (mexem no DOM/localStorage; o cálculo em si é puro) ---------- */
         function addItem(product, qty = 1) {
             if (successEl) successEl.hidden = true;
-            const existing = cart.find((item) => item.id === product.id);
-            if (existing) {
-                existing.qty = Math.min(existing.qty + qty, MAX_QTY);
-            } else {
-                cart.push({ ...product, qty: Math.min(qty, MAX_QTY) });
-            }
+            cart = addItemToCart(cart, product, qty, MAX_QTY);
             saveCart();
             render();
             announce(`${product.name} adicionada ao carrinho. ${totalItems()} itens no total.`);
         }
 
         function changeQty(id, delta) {
-            const item = cart.find((entry) => entry.id === id);
-            if (!item) return;
-            item.qty = Math.min(item.qty + delta, MAX_QTY);
-            if (item.qty <= 0) {
-                removeItem(id);
-                return;
-            }
+            cart = changeCartQty(cart, id, delta, MAX_QTY);
             saveCart();
             render();
         }
 
         function removeItem(id) {
             const item = cart.find((entry) => entry.id === id);
-            cart = cart.filter((entry) => entry.id !== id);
+            cart = removeCartItem(cart, id);
             saveCart();
             render();
             if (item) announce(`${item.name} removida do carrinho.`);
@@ -323,9 +312,10 @@
                 return;
             }
 
-            if (CONFIG.coupons[code]) {
+            const rate = findCouponRate(code, CONFIG.coupons);
+            if (rate) {
                 activeCoupon = code;
-                const pct = Math.round(CONFIG.coupons[code] * 100);
+                const pct = Math.round(rate * 100);
                 couponMsgEl.textContent = `Cupom ${code} (${pct}% OFF) aplicado!`;
                 announce(`Cupom ${code} com ${pct} por cento de desconto aplicado.`);
             } else {

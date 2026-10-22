@@ -1,0 +1,14 @@
+{
+  "name": "cerveja-artesanal-vitrine",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Vitrine online de cervejas artesanais (site estático + Supabase). Sem build: este package.json existe só para os testes (Vitest) das regras de negócio puras em js/modules/.",
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "vitest": "^2.1.4"
+  }
+}
