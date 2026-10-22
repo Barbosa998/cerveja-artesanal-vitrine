@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- CSP: só permite recursos do próprio site, do CDN do Supabase e das fontes do Google.
+         Limitação: "frame-ancestors" não funciona por <meta> (precisa de cabeçalho HTTP). -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://*.supabase.co; base-uri 'self'; form-action 'self'; object-src 'none';">
     <title>Minha conta | Cervejaria Artesanal</title>
     <meta name="description" content="Acompanhe seus pedidos e gerencie seus dados na Cervejaria Artesanal.">
     <meta name="robots" content="noindex">
@@ -140,6 +143,10 @@
                             <span>Declaro que tenho 18 anos ou mais.</span>
                         </label>
                         <label class="check">
+                            <input type="checkbox" name="termos" required>
+                            <span>Li e concordo com os <a href="termos.html" target="_blank" rel="noopener">Termos de Uso</a>.</span>
+                        </label>
+                        <label class="check">
                             <input type="checkbox" name="privacidade" required>
                             <span>Li e concordo com a <a href="privacidade.html" target="_blank" rel="noopener">Política de Privacidade</a>.</span>
                         </label>
@@ -222,6 +229,13 @@
                         <p class="form__message" id="profile-msg" aria-live="polite"></p>
                         <button type="submit" class="btn btn--primary form__submit">Salvar dados</button>
                     </form>
+
+                    <div class="account__danger">
+                        <h2 class="account__danger-title">Excluir minha conta</h2>
+                        <p class="account__text">Isso apaga permanentemente seu cadastro, seus dados e o histórico de pedidos. Não é possível desfazer.</p>
+                        <p class="form__message" id="delete-account-msg" aria-live="polite"></p>
+                        <button type="button" class="btn btn--secondary account__danger-btn" id="delete-account-btn">Excluir minha conta e meus dados</button>
+                    </div>
                 </div>
             </section>
 
@@ -255,7 +269,7 @@
         <!-- Aviso Legal -->
         <div class="footer__legal">
             <small class="footer__warning">Venda proibida para menores de 18 anos. Beba com moderação.</small>
-            <p class="footer__legal-links"><a href="privacidade.html" class="footer__link">Política de Privacidade</a></p>
+            <p class="footer__legal-links"><a href="termos.html" class="footer__link">Termos de Uso</a> &middot; <a href="privacidade.html" class="footer__link">Política de Privacidade</a></p>
             <p class="footer__copyright">&copy; 2026 Cervejaria Artesanal. Todos os direitos reservados.</p>
         </div>
     </footer>

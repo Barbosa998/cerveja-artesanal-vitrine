@@ -716,6 +716,15 @@ input {
     color: rgba(255, 255, 255, 0.5);
 }
 
+.newsletter__consent {
+    grid-column: 2;
+    color: rgba(255, 255, 255, 0.75);
+}
+
+.newsletter__consent a {
+    color: var(--color-white);
+}
+
 .newsletter__message {
     grid-column: 2;
     min-height: 1.5rem;
@@ -1527,6 +1536,28 @@ input {
     color: var(--color-text-light);
 }
 
+.account__danger {
+    margin-top: 2.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--color-border);
+}
+
+.account__danger-title {
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+    color: var(--color-secondary);
+}
+
+.account__danger-btn {
+    border-color: #c0392b;
+    color: #c0392b;
+}
+
+.account__danger-btn:hover {
+    background-color: #c0392b;
+    color: var(--color-white);
+}
+
 /* ---------- Abas ---------- */
 .tabs {
     display: flex;
@@ -1951,6 +1982,13 @@ input {
     display: inline-block;
     margin-top: 2rem;
     font-weight: 600;
+}
+
+.legal__note {
+    margin-top: 1rem;
+    padding: 0.85rem 1rem;
+    border-left: 3px solid var(--color-border);
+    font-size: 0.9rem;
 }
 
 /* ==========================================================================

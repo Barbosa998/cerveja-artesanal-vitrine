@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- CSP: só permite recursos do próprio site, do CDN do Supabase e das fontes do Google.
+         Limitação: "frame-ancestors" não funciona por <meta> (precisa de cabeçalho HTTP). -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://*.supabase.co; base-uri 'self'; form-action 'self'; object-src 'none';">
     <title>Cerveja | Cervejaria Artesanal</title>
     <meta name="description" content="Conheça as cervejas artesanais da nossa fábrica em Maringá - PR.">
     <meta property="og:title" content="Cerveja | Cervejaria Artesanal">
@@ -111,7 +114,7 @@
         <!-- Aviso Legal -->
         <div class="footer__legal">
             <small class="footer__warning">Venda proibida para menores de 18 anos. Beba com moderação.</small>
-            <p class="footer__legal-links"><a href="privacidade.html" class="footer__link">Política de Privacidade</a></p>
+            <p class="footer__legal-links"><a href="termos.html" class="footer__link">Termos de Uso</a> &middot; <a href="privacidade.html" class="footer__link">Política de Privacidade</a></p>
             <p class="footer__copyright">&copy; 2026 Cervejaria Artesanal. Todos os direitos reservados.</p>
         </div>
     </footer>
