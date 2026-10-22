@@ -240,6 +240,15 @@ import { normalizeCep, isValidCep, fetchAddressByCep } from './modules/viacep.js
         const successNumberEl = $('#cart-success-number');
         const successWhatsappEl = $('#cart-success-whatsapp');
 
+        // Pagamento com Pix (Mercado Pago) — ver startPixPayment()/checkPixStatus() abaixo
+        const pixBtn = $('#cart-pix-btn');
+        const pixMsgEl = $('#cart-pix-msg');
+        const pixQrEl = $('#cart-pix-qr');
+        const pixQrImgEl = $('#cart-pix-qr-img');
+        const pixCodeInput = $('#cart-pix-code');
+        const pixCopyBtn = $('#cart-pix-copy');
+        const pixStatusEl = $('#cart-pix-status');
+
         // Elementos do Cupom de Desconto
         const couponInput = $('#cart-coupon-input');
         const couponApplyBtn = $('#cart-coupon-apply');
@@ -596,10 +605,115 @@ import { normalizeCep, isValidCep, fetchAddressByCep } from './modules/viacep.js
         const whatsappUrl = (message) =>
             `https://wa.me/${CONFIG.whatsappNumber}?text=${encodeURIComponent(message)}`;
 
+        /* ---------- Pagamento com Pix (Mercado Pago) ----------
+           A confirmação é automática via Edge Function (webhook do Mercado
+           Pago). Como pagamento de TESTE nem sempre dispara o webhook de
+           forma confiável, também verificamos sozinhos de tempos em tempos
+           (checkPixStatus) enquanto o QR Code estiver na tela — então o
+           pedido é marcado como pago assim que qualquer um dos dois
+           confirmar, o que vier primeiro. Ver docs/PAGAMENTOS.md. */
+        const PIX_POLL_INTERVAL_MS = 4000;
+        const PIX_POLL_TIMEOUT_MS = 10 * 60 * 1000; // para de verificar sozinho depois de 10min
+        let pixPollTimer = null;
+        let pixPollStartedAt = 0;
+
+        function setPixMessage(text, type = '') {
+            if (!pixMsgEl) return;
+            pixMsgEl.textContent = text;
+            pixMsgEl.className = `cart__pix-msg${type ? ` cart__pix-msg--${type}` : ''}`;
+        }
+
+        function setPixStatus(text, type = '') {
+            if (!pixStatusEl) return;
+            pixStatusEl.textContent = text;
+            pixStatusEl.className = `cart__pix-status${type ? ` cart__pix-status--${type}` : ''}`;
+        }
+
+        function stopPixPolling() {
+            if (pixPollTimer) window.clearInterval(pixPollTimer);
+            pixPollTimer = null;
+        }
+
+        function resetPixUI() {
+            stopPixPolling();
+            if (pixBtn) {
+                pixBtn.hidden = false;
+                pixBtn.disabled = false;
+                pixBtn.textContent = 'Pagar com Pix';
+            }
+            if (pixQrEl) pixQrEl.hidden = true;
+            setPixMessage('');
+            setPixStatus('Aguardando pagamento...');
+        }
+
+        async function checkPixStatus(orderId) {
+            const auth = window.vitrineAuth;
+            if (!auth) return;
+
+            try {
+                const client = await auth.getClient();
+                const { data, error } = await client.functions.invoke('check-pix-payment', {
+                    body: { order_id: orderId }
+                });
+                if (error || !data) return; // tenta de novo no próximo intervalo
+
+                if (data.status === 'pago') {
+                    stopPixPolling();
+                    setPixStatus('Pagamento confirmado! 🎉', 'success');
+                    if (pixCopyBtn) pixCopyBtn.hidden = true;
+                    announce('Pagamento confirmado pelo Pix.');
+                    return;
+                }
+
+                if (Date.now() - pixPollStartedAt > PIX_POLL_TIMEOUT_MS) {
+                    stopPixPolling();
+                    setPixStatus('Ainda não identificamos o pagamento. Se já pagou, acompanhe em "Minha conta" — pode levar alguns minutos.', '');
+                }
+            } catch (error) {
+                /* falha pontual: tenta de novo no próximo intervalo, sem incomodar com mensagem */
+            }
+        }
+
+        async function startPixPayment(orderId) {
+            const auth = window.vitrineAuth;
+            if (!auth || !pixBtn) return;
+
+            pixBtn.disabled = true;
+            pixBtn.textContent = 'Gerando o Pix...';
+            setPixMessage('');
+
+            try {
+                const client = await auth.getClient();
+                const { data, error } = await client.functions.invoke('create-pix-payment', {
+                    body: { order_id: orderId }
+                });
+                if (error) throw error;
+                if (data && data.error) throw new Error(data.error);
+
+                pixQrImgEl.src = `data:image/png;base64,${data.qr_code_base64}`;
+                pixCodeInput.value = data.qr_code;
+                if (pixCopyBtn) pixCopyBtn.hidden = false;
+                pixQrEl.hidden = false;
+                pixBtn.hidden = true;
+                setPixStatus('Aguardando pagamento... a confirmação é automática.');
+
+                pixPollStartedAt = Date.now();
+                stopPixPolling();
+                pixPollTimer = window.setInterval(() => checkPixStatus(orderId), PIX_POLL_INTERVAL_MS);
+            } catch (error) {
+                setPixMessage('Não foi possível gerar o Pix agora. Você pode finalizar pelo WhatsApp.', 'error');
+                pixBtn.disabled = false;
+                pixBtn.textContent = 'Pagar com Pix';
+            }
+        }
+
         // Pedido salvo: esvazia o carrinho e mostra o botão para enviar pelo WhatsApp
-        function showOrderRegistered(orderNumber, message) {
+        // (e, se o backend estiver configurado, o de pagar com Pix)
+        function showOrderRegistered(orderId, orderNumber, message) {
             successNumberEl.textContent = `#${orderNumber}`;
             successWhatsappEl.href = whatsappUrl(message);
+            resetPixUI();
+            if (pixBtn) pixBtn.dataset.orderId = orderId;
 
             cart = [];
             activeCoupon = null;
@@ -650,7 +764,7 @@ import { normalizeCep, isValidCep, fetchAddressByCep } from './modules/viacep.js
                 if (error) throw error;
 
                 const order = Array.isArray(data) ? data[0] : data;
-                showOrderRegistered(order.numero, buildOrderMessage(order.numero));
+                showOrderRegistered(order.id, order.numero, buildOrderMessage(order.numero));
             } catch (error) {
                 setNotice('Não foi possível registrar o pedido agora. Confira sua conexão e tente novamente.');
             } finally {
@@ -714,6 +828,27 @@ import { normalizeCep, isValidCep, fetchAddressByCep } from './modules/viacep.js
         checkoutBtn.addEventListener('click', checkout);
         $('#cart-clear').addEventListener('click', clearCart);
 
+        // Eventos do pagamento com Pix
+        if (pixBtn) {
+            pixBtn.addEventListener('click', () => {
+                const orderId = pixBtn.dataset.orderId;
+                if (orderId) startPixPayment(orderId);
+            });
+        }
+        if (pixCopyBtn && pixCodeInput) {
+            pixCopyBtn.addEventListener('click', async () => {
+                try {
+                    await navigator.clipboard.writeText(pixCodeInput.value);
+                } catch (error) {
+                    // Sem permissão/API de clipboard: seleciona o texto pra copiar manual (Ctrl+C)
+                    pixCodeInput.select();
+                }
+                const original = pixCopyBtn.textContent;
+                pixCopyBtn.textContent = 'Copiado!';
+                window.setTimeout(() => { pixCopyBtn.textContent = original; }, 1500);
+            });
+        }
+
         // Abrir e fechar o painel
         toggleBtn.addEventListener('click', () => {
             if (typeof dialog.showModal === 'function') {
@@ -725,8 +860,11 @@ import { normalizeCep, isValidCep, fetchAddressByCep } from './modules/viacep.js
         $('#cart-close').addEventListener('click', () => dialog.close());
 
         // Ao fechar o painel, some o aviso e a tela de "pedido registrado"
+        // (e para de verificar o Pix sozinho — se já pagou, o webhook ainda
+        // confirma por trás; "Minha conta" mostra o status atualizado)
         dialog.addEventListener('close', () => {
             setNotice('');
+            stopPixPolling();
             if (successEl && !successEl.hidden) {
                 successEl.hidden = true;
                 render();

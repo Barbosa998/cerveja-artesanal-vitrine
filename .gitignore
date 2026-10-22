@@ -25,3 +25,5 @@ yarn-error.log*
 # Relatórios brutos do Lighthouse (pesados, só ruído no diff).
 # Os números ficam em docs/AUDITORIA-A11Y-SEO.md.
 docs/lighthouse/
+# Arquivos temporários do Supabase CLI
+supabase/.temp/
