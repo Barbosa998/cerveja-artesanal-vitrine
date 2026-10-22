@@ -605,6 +605,18 @@ input {
     width: 100%;
 }
 
+.product-card__stock--out,
+.product-page__stock--out {
+    font-weight: 600;
+    color: #c0392b;
+}
+
+.showcase__loading {
+    padding: 2rem 0;
+    text-align: center;
+    color: var(--color-text-light);
+}
+
 /* ==========================================================================
    SOBRE
    ========================================================================== */

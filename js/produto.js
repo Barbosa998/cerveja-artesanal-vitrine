@@ -26,18 +26,27 @@
     const prefersReducedMotion = () =>
         window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+    // Só considera "esgotado" quando o produto tem controle de estoque (vindo do
+    // Supabase) e ele chegou a zero. Produtos sem esse campo (reserva estática)
+    // continuam disponíveis como sempre.
+    const outOfStock = (item) => Number.isFinite(item.estoque) && item.estoque <= 0;
+
     const productId = new URLSearchParams(window.location.search).get('id');
-    const product = (window.PRODUTOS || []).find((item) => item.id === productId);
 
-    if (!product) {
-        renderNotFound();
-        return;
-    }
+    // Espera o catálogo (Supabase ou o arquivo fixo de reserva) antes de montar a página.
+    (window.VITRINE_CATALOG_READY || Promise.resolve(window.PRODUTOS || [])).then((produtos) => {
+        const product = (produtos || []).find((item) => item.id === productId);
 
-    renderProduct(product);
-    updateMetaTags(product);
-    initGallery();
-    initBuyBox(product);
+        if (!product) {
+            renderNotFound();
+            return;
+        }
+
+        renderProduct(product);
+        updateMetaTags(product);
+        initGallery();
+        initBuyBox(product);
+    });
 
     /* ======================================================================
        PRODUTO NÃO ENCONTRADO
@@ -166,13 +175,15 @@
                         <data value="${item.preco.toFixed(2)}">${brl.format(item.preco)}</data>
                     </p>
 
+                    ${outOfStock(item) ? '<p class="product-page__stock product-page__stock--out">Esgotado no momento.</p>' : ''}
+
                     <div class="product-page__buy">
                         <div class="qty" role="group" aria-label="Quantidade">
                             <button type="button" class="qty__btn" id="qty-decrease" aria-label="Diminuir quantidade">−</button>
                             <input type="number" class="qty__input" id="qty-input" value="1" min="1" max="${MAX_QTY}" inputmode="numeric" aria-label="Quantidade">
                             <button type="button" class="qty__btn" id="qty-increase" aria-label="Aumentar quantidade">+</button>
                         </div>
-                        <button type="button" class="btn btn--primary product-page__add-btn" id="add-to-cart">Adicionar ao carrinho</button>
+                        <button type="button" class="btn btn--primary product-page__add-btn" id="add-to-cart" ${outOfStock(item) ? 'disabled' : ''}>${outOfStock(item) ? 'Esgotado' : 'Adicionar ao carrinho'}</button>
                     </div>
 
                     <p class="product-page__note">Frete grátis em compras acima de R$ 150,00. Você também pode retirar na fábrica, em Maringá - PR.</p>
@@ -325,6 +336,7 @@
         });
 
         addButton.addEventListener('click', () => {
+            if (addButton.disabled || outOfStock(item)) return;
             if (!window.vitrine || typeof window.vitrine.addToCart !== 'function') return;
 
             window.vitrine.addToCart({ id: item.id, name: item.nome, price: item.preco }, readQty());

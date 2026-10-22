@@ -26,6 +26,7 @@ window.PRODUTOS = [
         id: 'hop-explosion-ipa',
         nome: 'Hop Explosion IPA',
         estilo: 'India Pale Ale',
+        categoria: 'ipa',
         resumo: 'India Pale Ale com notas cítricas e amargor marcante.',
         sobre: [
             'Uma IPA para quem gosta de lúpulo de verdade: aroma cítrico logo ao abrir, amargor marcante e um final que convida ao próximo gole.',
@@ -46,6 +47,7 @@ window.PRODUTOS = [
         id: 'midnight-stout',
         nome: 'Midnight Stout',
         estilo: 'Dry Stout',
+        categoria: 'stout',
         resumo: 'Stout escura, de corpo médio e final seco.',
         sobre: [
             'Uma Dry Stout escura com notas de malte tostado, lembrando café e cacau, e um final seco que deixa vontade de continuar.',
@@ -66,6 +68,7 @@ window.PRODUTOS = [
         id: 'classic-pilsen',
         nome: 'Classic Pilsen',
         estilo: 'Premium American Lager',
+        categoria: 'pilsen',
         resumo: 'Leve, refrescante e de final limpo.',
         sobre: [
             'Uma lager clara, leve e refrescante, com amargor suave e final limpo. A cerveja para o dia a dia, feita com cuidado artesanal.',
@@ -86,6 +89,7 @@ window.PRODUTOS = [
         id: 'bavarian-weiss',
         nome: 'Bavarian Weiss',
         estilo: 'Hefeweizen',
+        categoria: 'weiss',
         resumo: 'Cerveja de trigo, turva e cremosa.',
         sobre: [
             'Uma Hefeweizen de trigo, turva e cremosa, com notas que lembram banana e cravo, característica do estilo bávaro.',
@@ -106,6 +110,7 @@ window.PRODUTOS = [
         id: 'sunset-apa',
         nome: 'Sunset APA',
         estilo: 'American Pale Ale',
+        categoria: 'apa',
         resumo: 'Equilíbrio entre malte e lúpulo, com aroma cítrico.',
         sobre: [
             'Uma American Pale Ale equilibrada: malte na medida, lúpulo aromático e amargor moderado. Ótima porta de entrada para quem está começando nas artesanais.',
@@ -126,6 +131,7 @@ window.PRODUTOS = [
         id: 'berry-sour',
         nome: 'Berry Sour',
         estilo: 'Catharina Sour',
+        categoria: 'sour',
         resumo: 'Ácida, leve e refrescante, com frutas vermelhas.',
         sobre: [
             'Uma Catharina Sour com acidez refrescante e frutas vermelhas. Baixo amargor, baixo teor alcoólico e muito sabor.',

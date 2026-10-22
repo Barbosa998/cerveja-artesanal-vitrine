@@ -107,7 +107,56 @@
     }
 
     /* ======================================================================
-       2. FILTROS POR ESTILO
+       2. VITRINE: desenha os cards a partir do catálogo (Supabase ou reserva)
+       ====================================================================== */
+    function cardMarkup(product) {
+        const photo = (product.fotos && product.fotos[0]) || {};
+        const esgotado = Number.isFinite(product.estoque) && product.estoque <= 0;
+
+        return `
+            <article class="product-card" data-id="${esc(product.id)}" data-estilo="${esc(product.categoria || 'outro')}">
+                <figure class="product-card__figure">
+                    <a href="produto.html?id=${encodeURIComponent(product.id)}" class="product-card__figure-link" tabindex="-1" aria-hidden="true">
+                        <img src="${esc(photo.src || '')}" alt="${esc(photo.alt || '')}" class="product-card__img" loading="lazy" width="300" height="400">
+                    </a>
+                </figure>
+                <div class="product-card__details">
+                    <h3 class="product-card__name"><a href="produto.html?id=${encodeURIComponent(product.id)}" class="product-card__link">${esc(product.nome)}</a></h3>
+                    <p class="product-card__style">${esc(product.estilo)}</p>
+                    <ul class="product-card__specs" aria-label="Especificações da cerveja">
+                        ${product.abv ? `<li class="product-card__spec"><abbr title="Alcohol by Volume">ABV</abbr>: ${esc(product.abv)}</li>` : ''}
+                        ${product.ibu ? `<li class="product-card__spec"><abbr title="International Bitterness Units">IBU</abbr>: ${esc(product.ibu)}</li>` : ''}
+                        ${product.volume ? `<li class="product-card__spec">${esc(product.volume)}</li>` : ''}
+                    </ul>
+                    <p class="product-card__price-wrapper">
+                        <data value="${Number(product.preco).toFixed(2)}" class="product-card__price">${brl.format(product.preco)}</data>
+                    </p>
+                    ${esgotado
+                        ? '<p class="product-card__stock product-card__stock--out">Esgotado</p>'
+                        : `<button type="button" class="btn btn--primary product-card__add-btn" aria-label="Adicionar ${esc(product.nome)} ao carrinho">Adicionar ao carrinho</button>`}
+                </div>
+            </article>`;
+    }
+
+    // Escapa texto antes de colocar no HTML dos cards (os dados podem vir do painel do admin).
+    const esc = (value) => String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+
+    function renderShowcase(produtos) {
+        const grid = $('#showcase-grid');
+        const loading = $('#showcase-loading');
+        if (!grid) return; // página sem vitrine (ex.: produto.html, conta.html)
+
+        grid.innerHTML = (produtos || []).map(cardMarkup).join('');
+        if (loading) loading.hidden = true;
+    }
+
+    /* ======================================================================
+       3. FILTROS POR ESTILO
        ====================================================================== */
     function initFilters() {
         const form = $('#filters-form');
@@ -148,7 +197,7 @@
     }
 
     /* ======================================================================
-       3. CARRINHO DE COMPRAS E CUPOM DE DESCONTO
+       4. CARRINHO DE COMPRAS E CUPOM DE DESCONTO
        ====================================================================== */
     function initCart() {
         const dialog = $('#cart-dialog');
@@ -504,12 +553,18 @@
         }
 
         /* ---------- Eventos ---------- */
-        // Botões "Adicionar ao carrinho" nos cards
-        $$('.product-card').forEach((card) => {
-            const button = $('.product-card__add-btn', card);
-            if (!button) return;
+        // Botões "Adicionar ao carrinho" nos cards da vitrine. Delegação no
+        // container (em vez de um listener por card): os cards são desenhados
+        // depois, quando o catálogo termina de carregar.
+        const showcaseGrid = $('#showcase-grid');
+        if (showcaseGrid) {
+            showcaseGrid.addEventListener('click', (event) => {
+                const button = event.target.closest('.product-card__add-btn');
+                if (!button) return;
 
-            button.addEventListener('click', () => {
+                const card = button.closest('.product-card');
+                if (!card) return;
+
                 addItem({
                     id: card.dataset.id,
                     name: $('.product-card__name', card).textContent.trim(),
@@ -521,7 +576,7 @@
                 button.textContent = 'Adicionado ✓';
                 window.setTimeout(() => { button.textContent = original; }, 1200);
             });
-        });
+        }
 
         // Botões dentro do carrinho (+, −, remover)
         itemsEl.addEventListener('click', (event) => {
@@ -579,7 +634,7 @@
     }
 
     /* ======================================================================
-       4. NEWSLETTER (só funciona com endpoint configurado)
+       5. NEWSLETTER (só funciona com endpoint configurado)
        ====================================================================== */
     function initNewsletter() {
         const section = $('#newsletter');
@@ -624,7 +679,13 @@
        ====================================================================== */
 
     initAgeGate();
-    initFilters();
-    initCart();
+    initCart(); // não depende dos produtos (carrinho já salvo + delegação de eventos)
     initNewsletter();
+
+    // Desenha a vitrine e liga os filtros assim que o catálogo (Supabase ou
+    // reserva estática) estiver pronto.
+    (window.VITRINE_CATALOG_READY || Promise.resolve(window.PRODUTOS || [])).then((produtos) => {
+        renderShowcase(produtos);
+        initFilters();
+    });
 })();
