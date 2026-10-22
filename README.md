@@ -8,21 +8,28 @@ Site no ar: https://barbosa998.github.io/cerveja-artesanal-vitrine/
 ## Estrutura do Projeto
 ```
 cerveja-artesanal-vitrine/
-├── index.html          # Página inicial (vitrine, filtros, sobre)
-├── produto.html        # Página de produto (modelo: produto.html?id=...)
-├── conta.html          # Entrar, criar conta, pedidos e dados do cliente
-├── termos.html         # Termos de Uso (CDC, direito de arrependimento)
-├── privacidade.html    # Política de Privacidade (LGPD)
-├── css/style.css       # Estilos globais e componentes (BEM)
+├── index.html              # Página inicial (vitrine, filtros, sobre)
+├── produto.html            # Página de produto (modelo: produto.html?id=...)
+├── conta.html              # Entrar, criar conta, pedidos e dados do cliente
+├── admin.html              # Painel administrativo (pedidos, pagamentos, produtos)
+├── termos.html             # Termos de Uso (CDC, direito de arrependimento)
+├── privacidade.html        # Política de Privacidade (LGPD)
+├── css/
+│   ├── style.css           # Estilos globais e componentes (BEM)
+│   └── admin.css           # Estilos específicos do painel administrativo
 ├── js/
-│   ├── config.js       # WhatsApp e chaves do Supabase  <- você edita
-│   ├── produtos.js     # Textos, detalhes e fotos de cada cerveja  <- você edita
-│   ├── main.js         # Idade, filtros, carrinho, cupom e finalização do pedido
-│   ├── produto.js      # Monta a página de produto (carrossel de fotos)
-│   ├── auth.js         # Ponte com o Supabase
-│   └── conta.js        # Tela "Minha conta"
-├── supabase/schema.sql # Tabelas e regras de segurança do banco
-├── assets/img/         # Imagens (WebP, JPG, SVG)
+│   ├── config.js           # WhatsApp e chaves do Supabase  <- você edita
+│   ├── produtos.js         # Produtos de reserva (usados se o Supabase falhar)  <- você edita
+│   ├── catalog.js          # Busca os produtos no Supabase (com reserva de produtos.js)
+│   ├── main.js              # Idade, vitrine, filtros, carrinho, cupom e finalização do pedido
+│   ├── produto.js          # Monta a página de produto (carrossel de fotos)
+│   ├── auth.js              # Ponte com o Supabase
+│   ├── conta.js             # Tela "Minha conta"
+│   └── admin.js             # Painel administrativo
+├── supabase/
+│   ├── schema.sql           # Tabelas e regras de segurança do banco (clientes/pedidos)
+│   └── schema_admin.sql     # Migração do painel: admins, produtos, pagamentos, histórico
+├── assets/img/              # Imagens (WebP, JPG, SVG)
 └── README.md
 ```
 
@@ -37,6 +44,8 @@ cerveja-artesanal-vitrine/
 - `supabaseUrl` e `supabaseAnonKey`: ativam login, cadastro e pedidos (veja abaixo). Vazios = o botão "Entrar" some e o carrinho envia direto pelo WhatsApp.
 
 Outras opções ficam no topo do `js/main.js`: `freeShippingFrom` (frete grátis), `coupons` (cupons de desconto) e `newsletterEndpoint`.
+
+**Produtos:** depois de rodar `supabase/schema_admin.sql` (veja a seção do painel administrativo, abaixo), edite os produtos pelo `admin.html`, não mais em `js/produtos.js`. Esse arquivo continua existindo só como reserva, usada automaticamente se o Supabase não estiver configurado ou a tabela `produtos` ainda não existir.
 
 ## Ativar a área do cliente (Supabase)
 
@@ -65,14 +74,36 @@ Em **Authentication** > **Sign In / Providers** > **Email**, a opção "Confirm 
 
 > Atenção: o envio de e-mails do plano grátis tem limite baixo por hora. Quando o site tiver movimento, configure um serviço de e-mail próprio em **Authentication** > **SMTP Settings**.
 
-## Como atualizar o status de um pedido
-Por enquanto, pelo painel do Supabase:
-1. Abra **Table Editor** > tabela **orders**.
-2. Clique na linha do pedido e altere a coluna **status** para um destes valores:
-   `aguardando_pagamento`, `em_preparo`, `enviado`, `entregue` ou `cancelado`.
-3. Para pedidos enviados, preencha **codigo_rastreio**: ele aparece para o cliente.
+## Painel administrativo (admin.html)
 
-O cliente vê a mudança em "Minha conta" (botão "Atualizar" ou ao voltar para a aba).
+O painel em `admin.html` substitui o Table Editor para o dia a dia: confirmar pagamento, mudar o status do pedido, preencher o código de rastreio, editar produtos/estoque e exportar um CSV dos pedidos.
+
+### 1. Rodar a migração
+No **SQL Editor** do Supabase, cole e rode todo o conteúdo de `supabase/schema_admin.sql` (depois de já ter rodado `supabase/schema.sql`). Ele cria as tabelas do painel e **copia os 6 produtos de `js/produtos.js` para a tabela `produtos`** (só na primeira vez — depois disso, edite os produtos pelo painel, não mais pelo arquivo).
+
+### 2. Virar administrador
+Não existe tela para isso (de propósito: ninguém vira admin só porque acessou uma URL). Crie sua conta normalmente pelo site (`conta.html`) e depois, no SQL Editor, rode (trocando o e-mail):
+
+```sql
+insert into public.admins (user_id)
+select id from auth.users where email = 'SEU-EMAIL-AQUI@exemplo.com';
+```
+
+### 3. Entrar no painel
+Abra `admin.html`, entre com essa mesma conta. Quem não está na tabela `admins` vê "Acesso restrito" — o front só mostra ou esconde telas; quem decide de verdade é a política de segurança (RLS) do banco.
+
+### 4. Confirmar um pagamento (ex.: Pix pelo WhatsApp)
+Na aba **Pedidos**, abra o pedido "Aguardando pagamento", confira o comprovante fora do site, preencha a forma e o valor recebido e confirme. Se o valor for diferente do total do pedido, o painel pede uma justificativa antes de deixar confirmar.
+
+### 5. Avançar o status / preencher rastreio
+No mesmo pedido, escolha o próximo status (só aparecem os status válidos a partir do atual — o banco recusa qualquer pulo inválido, mesmo se alguém tentar pela API direto) e o código de rastreio. O cliente vê a mudança em "Minha conta".
+
+### 6. Histórico
+Cada confirmação de pagamento ou mudança de status fica registrada (quem, quando, o quê) e aparece na aba "Histórico" do pedido. Isso não pode ser editado nem apagado pela própria interface — nem por um admin.
+
+### Segurança do painel (o que ainda falta, se quiser reforçar)
+- O login do admin é o mesmo e-mail/senha do Supabase Auth. Para uma conta que mexe com confirmação de pagamento, recomendamos ativar **MFA (autenticação em duas etapas)** para essa conta em **Authentication > Providers** no painel do Supabase. Isso **não foi configurado automaticamente** aqui: é uma configuração manual, no painel do Supabase, fora do código.
+- Troque a senha da conta admin periodicamente e não a reaproveite de outro serviço.
 
 ## Como funciona o pedido
 1. O cliente monta o carrinho (que fica guardado no navegador).
@@ -85,7 +116,7 @@ O pagamento continua sendo combinado por fora (WhatsApp/Pix). Por isso, confira 
 ## Segurança
 
 - **Limite de tentativas de login/cadastro:** o botão trava durante o envio (evita duplo clique) e há um limite local de 5 tentativas a cada 10 minutos por formulário, só para UX — a proteção real contra abuso é do Supabase. Se o Supabase devolver erro 429 (limite do servidor), aparece uma contagem regressiva de 60s. Para testar sem esperar o limite: em `localhost`/`127.0.0.1`, abra `conta.html?reset-auth=1` (nunca funciona fora de localhost).
-- **RLS no Supabase:** cada tabela (`profiles`, `orders`, `order_items`) só permite ao cliente ler/editar os próprios dados. Pedidos só são criados pela função `criar_pedido()`, que recalcula os totais no servidor (o carrinho do navegador não é confiável). Nunca use a chave `service_role` no site.
+- **RLS no Supabase:** cada tabela (`profiles`, `orders`, `order_items`) só permite ao cliente ler/editar os próprios dados; admin lê tudo (`is_admin()`). Pedidos só são criados pela função `criar_pedido()`, que recalcula os totais no servidor (o carrinho do navegador não é confiável). Mudar status e confirmar pagamento só é possível pelas funções `admin_set_order_status()`/`admin_confirm_payment()`, nunca por `UPDATE` direto — e ambas conferem `is_admin()` no servidor antes de fazer qualquer coisa. A tabela `produtos` é de leitura pública só para quem está `ativo`; escrever nela exige ser admin. Nunca use a chave `service_role` no site.
 - **Exclusão de conta:** em "Minha conta > Meus dados", o cliente pode excluir a própria conta e dados (função `excluir_conta()` no `schema.sql`, que precisa ter sido rodada no SQL Editor do Supabase).
 - **CSP:** todas as páginas têm uma Content-Security-Policy via `<meta>`, liberando apenas recursos do próprio site, o CDN do Supabase (`cdn.jsdelivr.net`) e as fontes do Google. Limitação: `frame-ancestors` não funciona por `<meta>` (precisaria de cabeçalho HTTP, que o GitHub Pages não permite configurar).
 - **SRI:** o script do `supabase-js` carregado via CDN é validado por hash (`integrity`) em `js/auth.js`. Se você trocar a versão em `SUPABASE_SRC`, recalcule o hash (ex.: baixando o arquivo e rodando `openssl dgst -sha384 -binary arquivo.js | openssl base64 -A`) e atualize `SUPABASE_SRI`.
@@ -102,6 +133,6 @@ O pagamento continua sendo combinado por fora (WhatsApp/Pix). Por isso, confira 
 - [x] **Etapa 3:** Verificação de idade, filtros, carrinho e cupom.
 - [x] **Etapa 4:** Páginas de produto com carrossel de fotos.
 - [x] **Etapa 5:** Área do cliente (login, cadastro, pedidos e status).
-- [ ] **Etapa 6:** Painel de administração dos pedidos.
+- [x] **Etapa 6:** Painel de administração (pedidos, pagamentos, produtos/estoque).
 - [ ] **Etapa 7:** Otimização de performance (imagens WebP).
 - [ ] **Etapa 8:** Dados reais (telefone, e-mail, redes sociais, domínio próprio).
