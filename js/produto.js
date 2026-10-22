@@ -31,15 +31,43 @@
     // continuam disponíveis como sempre.
     const outOfStock = (item) => Number.isFinite(item.estoque) && item.estoque <= 0;
 
-    const productId = new URLSearchParams(window.location.search).get('id');
+    // Compara dois produtos ignorando a diferença de formato entre a reserva
+    // estática (produtos.js, sem o campo "estoque") e o que vem do Supabase
+    // (sempre com "estoque", nem que seja 0) — sem isso, a comparação
+    // JSON.stringify ingênua nunca bateria, e repintaríamos à toa sempre
+    // que os dados reais chegassem, mesmo sem nada ter mudado de verdade.
+    const sameProduct = (a, b) => {
+        const normalize = (p) => JSON.stringify({ ...p, estoque: Number.isFinite(p.estoque) ? p.estoque : 0 });
+        return normalize(a) === normalize(b);
+    };
 
-    // Espera o catálogo (Supabase ou o arquivo fixo de reserva) antes de montar a página.
-    (window.VITRINE_CATALOG_READY || Promise.resolve(window.PRODUTOS || [])).then((produtos) => {
+    const productId = new URLSearchParams(window.location.search).get('id');
+    const fallbackProdutos = window.PRODUTOS || [];
+    const fallbackProduct = fallbackProdutos.find((item) => item.id === productId);
+
+    // Pinta com os dados que já temos em mãos (a reserva estática, carregada
+    // de forma síncrona) assim que a página abre — sem esperar a rede.
+    // Isso evita o rodapé "pulando" quando o Supabase demora a responder
+    // (CLS alto). Se o catálogo do Supabase trouxer dados diferentes
+    // (preço/estoque atualizados no painel do admin), repintamos; se vier
+    // igual (o caso mais comum), não repintamos de novo.
+    if (fallbackProduct) {
+        renderProduct(fallbackProduct);
+        updateMetaTags(fallbackProduct);
+        initGallery();
+        initBuyBox(fallbackProduct);
+    }
+
+    (window.VITRINE_CATALOG_READY || Promise.resolve(fallbackProdutos)).then((produtos) => {
         const product = (produtos || []).find((item) => item.id === productId);
 
         if (!product) {
-            renderNotFound();
+            if (!fallbackProduct) renderNotFound();
             return;
+        }
+
+        if (fallbackProduct && sameProduct(product, fallbackProduct)) {
+            return; // já está na tela, igualzinho
         }
 
         renderProduct(product);

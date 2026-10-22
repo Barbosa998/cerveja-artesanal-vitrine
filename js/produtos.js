@@ -123,6 +123,8 @@ window.PRODUTOS = [
         temperatura: '6 a 8 °C',
         copo: 'Tulipa ou caneca',
         harmonizacao: 'Hambúrguer, pizza e queijos',
+        // TODO: troque por uma foto de verdade da Sunset APA. assets/img/beer-apa.jpg
+        // é uma cópia temporária da foto da Stout, só para não ficar com imagem quebrada.
         fotos: [
             { src: 'assets/img/beer-apa.jpg', alt: 'Garrafa de cerveja APA com rótulo laranja' }
         ]

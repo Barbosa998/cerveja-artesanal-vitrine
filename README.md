@@ -5,6 +5,8 @@ Vitrine virtual para venda de cervejas artesanais, com HTML5 semântico, acessib
 
 Site no ar: https://barbosa998.github.io/cerveja-artesanal-vitrine/
 
+**Acessibilidade e SEO:** 100/100 no Lighthouse em todas as páginas (exceto `conta.html`/`admin.html`, que são de propósito `noindex` por serem área logada). Detalhes e números em [`docs/AUDITORIA-A11Y-SEO.md`](docs/AUDITORIA-A11Y-SEO.md).
+
 ## Estrutura do Projeto
 ```
 cerveja-artesanal-vitrine/
