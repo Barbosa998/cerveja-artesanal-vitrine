@@ -1,13 +1,31 @@
 /**
- * Arquivo Principal de JavaScript
+ * Arquivo Principal de JavaScript (módulo ES).
  * Responsável por:
  * - Controle do Dialog de verificação de idade
- * - Interatividade dos Filtros
+ * - Desenhar a vitrine e os filtros
  * - Lógica do Carrinho de Compras (salvo no localStorage) e Cupom de Desconto
+ *   — as regras puras (somar, validar, calcular desconto) vivem em
+ *   js/modules/cart.js e js/modules/coupons.js, com testes em
+ *   js/modules/__tests__/. Aqui só a parte que mexe no DOM/localStorage.
  * - Expõe window.vitrine.addToCart para a página de produto
  * - Finalização do pedido: salva na conta do cliente (Supabase) e envia pelo WhatsApp
+ * - Endereço de entrega: busca por CEP na API pública do ViaCEP
+ *   (js/modules/viacep.js), com cache em memória, debounce e cancelamento
+ *   da busca anterior se a pessoa continuar digitando.
  * - Newsletter (opcional, só aparece se houver um endpoint configurado)
  */
+import {
+    sanitizeCart,
+    addItem as addItemToCart,
+    changeQty as changeCartQty,
+    removeItem as removeCartItem,
+    totalItems as cartTotalItems,
+    totalPrice as cartTotalPrice,
+    MAX_QTY
+} from './modules/cart.js';
+import { findCouponRate, calculateDiscount, calculateFinalPrice } from './modules/coupons.js';
+import { normalizeCep, isValidCep, fetchAddressByCep } from './modules/viacep.js';
+
 (() => {
     'use strict';
 
@@ -38,8 +56,6 @@
         cart: 'vitrine:carrinho'
     };
 
-    const MAX_QTY = 99;
-
     /* ======================================================================
        UTILITÁRIOS
        ====================================================================== */
@@ -50,6 +66,11 @@
 
     const prefersReducedMotion = () =>
         window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // Cache em memória dos CEPs já consultados nesta visita (não é persistido:
+    // some ao recarregar a página). Evita bater na API de novo se a pessoa
+    // apagar e digitar o mesmo CEP, ou abrir/fechar o carrinho várias vezes.
+    const cepCache = new Map();
 
     // localStorage pode falhar (modo privado, bloqueado etc.), então protegemos tudo.
     const storage = {
@@ -107,7 +128,56 @@
     }
 
     /* ======================================================================
-       2. FILTROS POR ESTILO
+       2. VITRINE: desenha os cards a partir do catálogo (Supabase ou reserva)
+       ====================================================================== */
+    function cardMarkup(product) {
+        const photo = (product.fotos && product.fotos[0]) || {};
+        const esgotado = Number.isFinite(product.estoque) && product.estoque <= 0;
+
+        return `
+            <article class="product-card" data-id="${esc(product.id)}" data-estilo="${esc(product.categoria || 'outro')}">
+                <figure class="product-card__figure">
+                    <a href="produto.html?id=${encodeURIComponent(product.id)}" class="product-card__figure-link" tabindex="-1" aria-hidden="true">
+                        <img src="${esc(photo.src || '')}" alt="${esc(photo.alt || '')}" class="product-card__img" loading="lazy" width="300" height="400">
+                    </a>
+                </figure>
+                <div class="product-card__details">
+                    <h3 class="product-card__name"><a href="produto.html?id=${encodeURIComponent(product.id)}" class="product-card__link">${esc(product.nome)}</a></h3>
+                    <p class="product-card__style">${esc(product.estilo)}</p>
+                    <ul class="product-card__specs" aria-label="Especificações da cerveja">
+                        ${product.abv ? `<li class="product-card__spec"><abbr title="Alcohol by Volume">ABV</abbr>: ${esc(product.abv)}</li>` : ''}
+                        ${product.ibu ? `<li class="product-card__spec"><abbr title="International Bitterness Units">IBU</abbr>: ${esc(product.ibu)}</li>` : ''}
+                        ${product.volume ? `<li class="product-card__spec">${esc(product.volume)}</li>` : ''}
+                    </ul>
+                    <p class="product-card__price-wrapper">
+                        <data value="${Number(product.preco).toFixed(2)}" class="product-card__price">${brl.format(product.preco)}</data>
+                    </p>
+                    ${esgotado
+                        ? '<p class="product-card__stock product-card__stock--out">Esgotado</p>'
+                        : `<button type="button" class="btn btn--primary product-card__add-btn" aria-label="Adicionar ${esc(product.nome)} ao carrinho">Adicionar ao carrinho</button>`}
+                </div>
+            </article>`;
+    }
+
+    // Escapa texto antes de colocar no HTML dos cards (os dados podem vir do painel do admin).
+    const esc = (value) => String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+
+    function renderShowcase(produtos) {
+        const grid = $('#showcase-grid');
+        const loading = $('#showcase-loading');
+        if (!grid) return; // página sem vitrine (ex.: produto.html, conta.html)
+
+        grid.innerHTML = (produtos || []).map(cardMarkup).join('');
+        if (loading) loading.hidden = true;
+    }
+
+    /* ======================================================================
+       3. FILTROS POR ESTILO
        ====================================================================== */
     function initFilters() {
         const form = $('#filters-form');
@@ -148,7 +218,7 @@
     }
 
     /* ======================================================================
-       3. CARRINHO DE COMPRAS E CUPOM DE DESCONTO
+       4. CARRINHO DE COMPRAS E CUPOM DE DESCONTO
        ====================================================================== */
     function initCart() {
         const dialog = $('#cart-dialog');
@@ -178,22 +248,21 @@
         const couponNameEl = $('#cart-coupon-name');
         const discountEl = $('#cart-discount');
 
+        // Elementos do endereço de entrega (CEP via ViaCEP)
+        const cepInput = $('#cart-cep');
+        const cepStatusEl = $('#cart-cep-status');
+        const addressFieldsEl = $('#cart-address-fields');
+        const numeroInput = $('#cart-numero');
+        const complementoInput = $('#cart-complemento');
+
         let cart = loadCart();
         let activeCoupon = null; // Guarda o código do cupom aplicado
+        let resolvedAddress = null; // { cep, rua, bairro, cidade, uf }, preenchido pelo ViaCEP
 
         /* ---------- Persistência ---------- */
         function loadCart() {
             try {
-                const parsed = JSON.parse(storage.get(STORAGE_KEYS.cart) || '[]');
-                if (!Array.isArray(parsed)) return [];
-                return parsed.filter((item) =>
-                    item &&
-                    typeof item.id === 'string' &&
-                    typeof item.name === 'string' &&
-                    Number.isFinite(item.price) &&
-                    Number.isInteger(item.qty) &&
-                    item.qty > 0
-                );
+                return sanitizeCart(JSON.parse(storage.get(STORAGE_KEYS.cart) || '[]'));
             } catch (error) {
                 return [];
             }
@@ -203,14 +272,11 @@
             storage.set(STORAGE_KEYS.cart, JSON.stringify(cart));
         }
 
-        /* ---------- Cálculos ---------- */
-        const totalItems = () => cart.reduce((sum, item) => sum + item.qty, 0);
-        const totalPrice = () => cart.reduce((sum, item) => sum + item.price * item.qty, 0);
-        const discountValue = () => {
-            if (!activeCoupon || !CONFIG.coupons[activeCoupon]) return 0;
-            return totalPrice() * CONFIG.coupons[activeCoupon];
-        };
-        const finalPrice = () => Math.max(0, totalPrice() - discountValue());
+        /* ---------- Cálculos (regras puras importadas de js/modules/) ---------- */
+        const totalItems = () => cartTotalItems(cart);
+        const totalPrice = () => cartTotalPrice(cart);
+        const discountValue = () => calculateDiscount(totalPrice(), findCouponRate(activeCoupon, CONFIG.coupons));
+        const finalPrice = () => calculateFinalPrice(totalPrice(), discountValue());
 
         function announce(message) {
             statusEl.textContent = '';
@@ -218,35 +284,24 @@
             window.setTimeout(() => { statusEl.textContent = message; }, 50);
         }
 
-        /* ---------- Ações ---------- */
+        /* ---------- Ações (mexem no DOM/localStorage; o cálculo em si é puro) ---------- */
         function addItem(product, qty = 1) {
             if (successEl) successEl.hidden = true;
-            const existing = cart.find((item) => item.id === product.id);
-            if (existing) {
-                existing.qty = Math.min(existing.qty + qty, MAX_QTY);
-            } else {
-                cart.push({ ...product, qty: Math.min(qty, MAX_QTY) });
-            }
+            cart = addItemToCart(cart, product, qty, MAX_QTY);
             saveCart();
             render();
             announce(`${product.name} adicionada ao carrinho. ${totalItems()} itens no total.`);
         }
 
         function changeQty(id, delta) {
-            const item = cart.find((entry) => entry.id === id);
-            if (!item) return;
-            item.qty = Math.min(item.qty + delta, MAX_QTY);
-            if (item.qty <= 0) {
-                removeItem(id);
-                return;
-            }
+            cart = changeCartQty(cart, id, delta, MAX_QTY);
             saveCart();
             render();
         }
 
         function removeItem(id) {
             const item = cart.find((entry) => entry.id === id);
-            cart = cart.filter((entry) => entry.id !== id);
+            cart = removeCartItem(cart, id);
             saveCart();
             render();
             if (item) announce(`${item.name} removida do carrinho.`);
@@ -257,6 +312,7 @@
             activeCoupon = null;
             if (couponInput) couponInput.value = '';
             if (couponMsgEl) couponMsgEl.textContent = '';
+            resetAddress();
             saveCart();
             render();
             announce('Carrinho esvaziado.');
@@ -274,9 +330,10 @@
                 return;
             }
 
-            if (CONFIG.coupons[code]) {
+            const rate = findCouponRate(code, CONFIG.coupons);
+            if (rate) {
                 activeCoupon = code;
-                const pct = Math.round(CONFIG.coupons[code] * 100);
+                const pct = Math.round(rate * 100);
                 couponMsgEl.textContent = `Cupom ${code} (${pct}% OFF) aplicado!`;
                 announce(`Cupom ${code} com ${pct} por cento de desconto aplicado.`);
             } else {
@@ -286,6 +343,99 @@
             }
 
             render();
+        }
+
+        /* ---------- Endereço de entrega (CEP via ViaCEP) ---------- */
+        let cepDebounceTimer = null;
+        let cepAbortController = null;
+
+        function setCepStatus(text, type = '') {
+            if (!cepStatusEl) return;
+            cepStatusEl.textContent = text;
+            cepStatusEl.className = `cart__cep-status${type ? ` cart__cep-status--${type}` : ''}`;
+        }
+
+        function clearResolvedAddress() {
+            resolvedAddress = null;
+            if (addressFieldsEl) addressFieldsEl.hidden = true;
+        }
+
+        const CEP_ERROR_MESSAGES = {
+            formato_invalido: 'CEP precisa ter 8 dígitos.',
+            nao_encontrado: 'CEP não encontrado. Confira o número ou preencha o endereço pelo WhatsApp mesmo.',
+            falha_rede: 'Não foi possível consultar o CEP agora. Você pode preencher o endereço pelo WhatsApp.'
+        };
+
+        async function lookupCep(rawCep) {
+            const cep = normalizeCep(rawCep);
+
+            if (cepAbortController) cepAbortController.abort(); // cancela uma busca anterior ainda em andamento
+
+            if (!cep) {
+                setCepStatus('');
+                clearResolvedAddress();
+                return;
+            }
+
+            if (!isValidCep(cep)) {
+                setCepStatus(cep.length < 8 ? '' : CEP_ERROR_MESSAGES.formato_invalido, cep.length < 8 ? '' : 'error');
+                clearResolvedAddress();
+                return;
+            }
+
+            if (cepCache.has(cep)) {
+                resolvedAddress = cepCache.get(cep);
+                setCepStatus(`${resolvedAddress.rua ? resolvedAddress.rua + ', ' : ''}${resolvedAddress.bairro}, ${resolvedAddress.cidade} - ${resolvedAddress.uf}`, 'success');
+                if (addressFieldsEl) addressFieldsEl.hidden = false;
+                return;
+            }
+
+            cepAbortController = new AbortController();
+            const { signal } = cepAbortController;
+            setCepStatus('Buscando endereço...');
+
+            try {
+                const address = await fetchAddressByCep(cep, { signal });
+                if (signal.aborted) return; // chegou atrasado (CEP já mudou de novo)
+
+                cepCache.set(cep, address);
+                resolvedAddress = address;
+                setCepStatus(`${address.rua ? address.rua + ', ' : ''}${address.bairro}, ${address.cidade} - ${address.uf}`, 'success');
+                if (addressFieldsEl) addressFieldsEl.hidden = false;
+            } catch (error) {
+                if (error && error.name === 'AbortError') return; // cancelado, não é erro de verdade
+                setCepStatus(CEP_ERROR_MESSAGES[error && error.code] || CEP_ERROR_MESSAGES.falha_rede, 'error');
+                clearResolvedAddress();
+            }
+        }
+
+        // Espera a pessoa parar de digitar por 500ms antes de consultar
+        // (evita uma chamada à API a cada tecla digitada).
+        function onCepInput() {
+            window.clearTimeout(cepDebounceTimer);
+            cepDebounceTimer = window.setTimeout(() => lookupCep(cepInput.value), 500);
+        }
+
+        function deliveryAddressLine() {
+            if (!resolvedAddress) return null;
+            const numero = numeroInput ? numeroInput.value.trim() : '';
+            const complemento = complementoInput ? complementoInput.value.trim() : '';
+            const partes = [
+                resolvedAddress.rua && numero ? `${resolvedAddress.rua}, ${numero}` : resolvedAddress.rua,
+                complemento,
+                resolvedAddress.bairro,
+                `${resolvedAddress.cidade} - ${resolvedAddress.uf}`,
+                `CEP ${resolvedAddress.cep}`
+            ].filter(Boolean);
+            return partes.join(', ');
+        }
+
+        function resetAddress() {
+            if (cepInput) cepInput.value = '';
+            if (numeroInput) numeroInput.value = '';
+            if (complementoInput) complementoInput.value = '';
+            setCepStatus('');
+            clearResolvedAddress();
         }
 
         /* ---------- Renderização ---------- */
@@ -425,6 +575,8 @@
                 ]
                 : [`Total: ${brl.format(totalPrice())}`];
 
+            const endereco = deliveryAddressLine();
+
             return [
                 orderNumber
                     ? `Olá! Acabei de fazer o pedido #${orderNumber} no site:`
@@ -435,7 +587,9 @@
                 ...summaryLines,
                 '',
                 ...(orderNumber ? [] : ['Nome:']),
-                'Endereço de entrega (ou "retirar na fábrica"):'
+                endereco
+                    ? `Endereço de entrega: ${endereco}`
+                    : 'Endereço de entrega (ou "retirar na fábrica"):'
             ].join('\n');
         }
 
@@ -451,6 +605,7 @@
             activeCoupon = null;
             if (couponInput) couponInput.value = '';
             if (couponMsgEl) couponMsgEl.textContent = '';
+            resetAddress();
             saveCart();
 
             successEl.hidden = false;
@@ -504,12 +659,18 @@
         }
 
         /* ---------- Eventos ---------- */
-        // Botões "Adicionar ao carrinho" nos cards
-        $$('.product-card').forEach((card) => {
-            const button = $('.product-card__add-btn', card);
-            if (!button) return;
+        // Botões "Adicionar ao carrinho" nos cards da vitrine. Delegação no
+        // container (em vez de um listener por card): os cards são desenhados
+        // depois, quando o catálogo termina de carregar.
+        const showcaseGrid = $('#showcase-grid');
+        if (showcaseGrid) {
+            showcaseGrid.addEventListener('click', (event) => {
+                const button = event.target.closest('.product-card__add-btn');
+                if (!button) return;
 
-            button.addEventListener('click', () => {
+                const card = button.closest('.product-card');
+                if (!card) return;
+
                 addItem({
                     id: card.dataset.id,
                     name: $('.product-card__name', card).textContent.trim(),
@@ -521,7 +682,7 @@
                 button.textContent = 'Adicionado ✓';
                 window.setTimeout(() => { button.textContent = original; }, 1200);
             });
-        });
+        }
 
         // Botões dentro do carrinho (+, −, remover)
         itemsEl.addEventListener('click', (event) => {
@@ -543,6 +704,11 @@
                     applyCoupon();
                 }
             });
+        }
+
+        // Evento do CEP (busca com debounce, ver onCepInput/lookupCep acima)
+        if (cepInput) {
+            cepInput.addEventListener('input', onCepInput);
         }
 
         checkoutBtn.addEventListener('click', checkout);
@@ -579,7 +745,7 @@
     }
 
     /* ======================================================================
-       4. NEWSLETTER (só funciona com endpoint configurado)
+       5. NEWSLETTER (só funciona com endpoint configurado)
        ====================================================================== */
     function initNewsletter() {
         const section = $('#newsletter');
@@ -624,7 +790,13 @@
        ====================================================================== */
 
     initAgeGate();
-    initFilters();
-    initCart();
+    initCart(); // não depende dos produtos (carrinho já salvo + delegação de eventos)
     initNewsletter();
+
+    // Desenha a vitrine e liga os filtros assim que o catálogo (Supabase ou
+    // reserva estática) estiver pronto.
+    (window.VITRINE_CATALOG_READY || Promise.resolve(window.PRODUTOS || [])).then((produtos) => {
+        renderShowcase(produtos);
+        initFilters();
+    });
 })();

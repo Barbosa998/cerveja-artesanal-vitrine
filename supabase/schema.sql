@@ -182,3 +182,28 @@ $$;
 
 revoke all on function public.criar_pedido(jsonb, text, numeric) from public, anon;
 grant execute on function public.criar_pedido(jsonb, text, numeric) to authenticated;
+
+-- --------------------------------------------------------------------------
+-- 4) EXCLUSÃO DE CONTA (LGPD, art. 18, VI)
+--    O cliente só consegue apagar a PRÓPRIA conta (auth.uid()), nunca a de
+--    outra pessoa. Apagar o usuário em auth.users arrasta em cascata o
+--    perfil (profiles) e os pedidos (orders/order_items), pelas FKs
+--    "on delete cascade" já criadas acima.
+-- --------------------------------------------------------------------------
+create or replace function public.excluir_conta()
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+    if auth.uid() is null then
+        raise exception 'Você precisa estar logado para excluir sua conta.';
+    end if;
+
+    delete from auth.users where id = auth.uid();
+end;
+$$;
+
+revoke all on function public.excluir_conta() from public, anon;
+grant execute on function public.excluir_conta() to authenticated;

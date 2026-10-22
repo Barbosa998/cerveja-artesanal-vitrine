@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- noindex: a página é pública (todo HTML/JS de um site estático é), mas não
+         precisa aparecer em buscadores. Isso é só organização, não segurança —
+         quem decide acesso é a política RLS/is_admin() no Supabase. -->
+    <meta name="robots" content="noindex, nofollow">
+    <!-- CSP mais restrita que a da vitrine: nada de fontes externas aqui.
+         Limitação: "frame-ancestors" não funciona por <meta> (precisa de
+         cabeçalho HTTP; GitHub Pages não permite configurar), por isso não
+         está aqui — colocá-la só gera um aviso inútil no console. -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self'; connect-src 'self' https://*.supabase.co; base-uri 'self'; form-action 'self'; object-src 'none';">
+    <title>Painel administrativo | Cervejaria Artesanal</title>
+
+    <link rel="icon" href="assets/img/icon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/admin.css">
+</head>
+<body class="admin-body">
+    <a href="#conteudo-principal" class="skip-link">Ir para o conteúdo principal</a>
+
+    <header class="admin-header">
+        <div class="admin-header__inner">
+            <p class="admin-header__title">Painel administrativo</p>
+            <div class="admin-header__actions">
+                <span class="admin-header__email" id="admin-email" hidden></span>
+                <button type="button" class="btn btn--secondary" id="admin-logout" hidden>Sair</button>
+            </div>
+        </div>
+    </header>
+
+    <main id="conteudo-principal" class="admin-main">
+        <p class="account__loading" id="admin-loading" role="status">Carregando...</p>
+
+        <section id="view-unavailable" class="account__card" hidden>
+            <h1 class="account__title" data-focus-target tabindex="-1">Painel indisponível</h1>
+            <p class="account__text">A área do cliente/admin ainda não está configurada (js/config.js). Configure o Supabase primeiro.</p>
+        </section>
+
+        <section id="view-login" class="account__card" hidden aria-labelledby="login-title">
+            <h1 id="login-title" class="account__title" data-focus-target tabindex="-1">Entrar como administrador</h1>
+            <p class="account__text">Use a mesma conta que você cadastrou como admin pelo SQL Editor do Supabase.</p>
+            <form class="form" id="admin-login-form">
+                <div class="field">
+                    <label for="admin-login-email" class="field__label">E-mail</label>
+                    <input type="email" id="admin-login-email" name="email" class="field__input" required autocomplete="email">
+                </div>
+                <div class="field">
+                    <label for="admin-login-password" class="field__label">Senha</label>
+                    <input type="password" id="admin-login-password" name="password" class="field__input" required autocomplete="current-password">
+                </div>
+                <p class="form__message" id="admin-login-msg" aria-live="polite"></p>
+                <button type="submit" class="btn btn--primary form__submit">Entrar</button>
+            </form>
+        </section>
+
+        <section id="view-denied" class="account__card" hidden>
+            <h1 class="account__title" data-focus-target tabindex="-1">Acesso restrito</h1>
+            <p class="account__text">Esta conta não tem acesso ao painel administrativo. Se você deveria ser admin, confirme se o seu usuário foi inserido na tabela <code>public.admins</code> (veja o README).</p>
+            <button type="button" class="btn btn--secondary" id="denied-logout">Sair e tentar com outra conta</button>
+        </section>
+
+        <section id="view-panel" hidden aria-labelledby="panel-title">
+            <h1 id="panel-title" class="sr-only" data-focus-target tabindex="-1">Painel administrativo</h1>
+
+            <div class="tabs" role="tablist" aria-label="Seções do painel" id="admin-tabs">
+                <button type="button" role="tab" class="tabs__tab" id="tab-pedidos" aria-selected="true" aria-controls="panel-pedidos">Pedidos</button>
+                <button type="button" role="tab" class="tabs__tab" id="tab-produtos" aria-selected="false" aria-controls="panel-produtos" tabindex="-1">Produtos</button>
+            </div>
+
+            <!-- ================= PEDIDOS ================= -->
+            <div role="tabpanel" id="panel-pedidos" aria-labelledby="tab-pedidos">
+                <div class="admin-toolbar">
+                    <label class="admin-toolbar__field">
+                        <span class="sr-only">Filtrar por status</span>
+                        <select id="orders-filter-status" class="field__input">
+                            <option value="">Todos os status</option>
+                            <option value="aguardando_pagamento">Aguardando pagamento</option>
+                            <option value="pago">Pago</option>
+                            <option value="em_preparo">Em preparo</option>
+                            <option value="enviado">Enviado</option>
+                            <option value="entregue">Entregue</option>
+                            <option value="cancelado">Cancelado</option>
+                        </select>
+                    </label>
+                    <label class="admin-toolbar__field admin-toolbar__field--grow">
+                        <span class="sr-only">Buscar por número, nome ou e-mail</span>
+                        <input type="search" id="orders-search" class="field__input" placeholder="Buscar por número, nome ou e-mail...">
+                    </label>
+                    <button type="button" class="btn btn--secondary" id="orders-refresh">Atualizar</button>
+                    <button type="button" class="btn btn--secondary" id="orders-export">Exportar CSV</button>
+                </div>
+
+                <p class="orders__status" id="orders-admin-status" role="status"></p>
+
+                <div class="admin-table-wrap">
+                    <table class="admin-table" id="orders-table">
+                        <thead>
+                            <tr>
+                                <th scope="col">Pedido</th>
+                                <th scope="col">Cliente</th>
+                                <th scope="col">Data</th>
+                                <th scope="col">Status</th>
+                                <th scope="col">Total</th>
+                                <th scope="col"><span class="sr-only">Ações</span></th>
+                            </tr>
+                        </thead>
+                        <tbody id="orders-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ================= PRODUTOS ================= -->
+            <div role="tabpanel" id="panel-produtos" aria-labelledby="tab-produtos" hidden>
+                <div class="admin-toolbar">
+                    <p class="admin-toolbar__hint">Produtos inativos não aparecem na vitrine.</p>
+                    <button type="button" class="btn btn--primary" id="produto-novo">Novo produto</button>
+                </div>
+
+                <p class="orders__status" id="produtos-admin-status" role="status"></p>
+
+                <div class="admin-table-wrap">
+                    <table class="admin-table" id="produtos-table">
+                        <thead>
+                            <tr>
+                                <th scope="col">Nome</th>
+                                <th scope="col">Categoria</th>
+                                <th scope="col">Preço</th>
+                                <th scope="col">Estoque</th>
+                                <th scope="col">Ativo</th>
+                                <th scope="col"><span class="sr-only">Ações</span></th>
+                            </tr>
+                        </thead>
+                        <tbody id="produtos-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- ================= MODAL: DETALHE DO PEDIDO ================= -->
+    <dialog id="order-dialog" class="admin-dialog" aria-labelledby="order-dialog-title">
+        <div class="admin-dialog__panel">
+            <div class="admin-dialog__head">
+                <h2 class="admin-dialog__title" id="order-dialog-title">Pedido</h2>
+                <button type="button" class="cart__close" id="order-dialog-close" aria-label="Fechar">&times;</button>
+            </div>
+
+            <div id="order-dialog-body"></div>
+
+            <form class="form form--wide" id="order-status-form">
+                <div class="field">
+                    <label for="order-status-select" class="field__label">Status</label>
+                    <select id="order-status-select" class="field__input"></select>
+                </div>
+                <div class="field">
+                    <label for="order-tracking-input" class="field__label">Código de rastreio</label>
+                    <input type="text" id="order-tracking-input" class="field__input" maxlength="80">
+                </div>
+                <div class="field">
+                    <label for="order-status-note" class="field__label">Observação <span class="field__optional">(opcional, fica no histórico)</span></label>
+                    <input type="text" id="order-status-note" class="field__input" maxlength="200">
+                </div>
+                <p class="form__message" id="order-status-msg" aria-live="polite"></p>
+                <button type="submit" class="btn btn--primary form__submit">Salvar status</button>
+            </form>
+
+            <form class="form form--wide" id="order-payment-form">
+                <h3 class="admin-dialog__subtitle">Confirmar pagamento</h3>
+                <div class="field">
+                    <label for="payment-method" class="field__label">Forma</label>
+                    <select id="payment-method" class="field__input">
+                        <option value="pix">Pix</option>
+                        <option value="dinheiro">Dinheiro</option>
+                        <option value="outro">Outro</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="payment-amount" class="field__label">Valor recebido (R$)</label>
+                    <input type="number" id="payment-amount" class="field__input" step="0.01" min="0" required>
+                </div>
+                <div class="field">
+                    <label for="payment-note" class="field__label">Observação <span class="field__optional">(obrigatória se o valor for diferente do total)</span></label>
+                    <input type="text" id="payment-note" class="field__input" maxlength="200">
+                </div>
+                <p class="form__message" id="order-payment-msg" aria-live="polite"></p>
+                <button type="submit" class="btn btn--primary form__submit">Confirmar pagamento</button>
+            </form>
+
+            <div class="admin-dialog__history">
+                <h3 class="admin-dialog__subtitle">Histórico</h3>
+                <ul id="order-history-list" class="admin-history"></ul>
+            </div>
+        </div>
+    </dialog>
+
+    <!-- ================= MODAL: EDITAR PRODUTO ================= -->
+    <dialog id="produto-dialog" class="admin-dialog" aria-labelledby="produto-dialog-title">
+        <div class="admin-dialog__panel">
+            <div class="admin-dialog__head">
+                <h2 class="admin-dialog__title" id="produto-dialog-title">Produto</h2>
+                <button type="button" class="cart__close" id="produto-dialog-close" aria-label="Fechar">&times;</button>
+            </div>
+
+            <form class="form form--wide" id="produto-form">
+                <div class="field">
+                    <label for="produto-id" class="field__label">Identificador (slug) <span class="field__optional">(sem espaços, não muda depois)</span></label>
+                    <input type="text" id="produto-id" class="field__input" pattern="[a-z0-9-]+" maxlength="80" required>
+                </div>
+                <div class="field">
+                    <label for="produto-nome" class="field__label">Nome</label>
+                    <input type="text" id="produto-nome" class="field__input" maxlength="120" required>
+                </div>
+                <div class="field">
+                    <label for="produto-estilo" class="field__label">Estilo (texto mostrado)</label>
+                    <input type="text" id="produto-estilo" class="field__input" maxlength="80" required>
+                </div>
+                <div class="field">
+                    <label for="produto-categoria" class="field__label">Categoria (filtro da vitrine)</label>
+                    <select id="produto-categoria" class="field__input">
+                        <option value="ipa">IPA</option>
+                        <option value="stout">Stout</option>
+                        <option value="pilsen">Pilsen</option>
+                        <option value="weiss">Weiss</option>
+                        <option value="apa">APA</option>
+                        <option value="sour">Sour</option>
+                        <option value="outro">Outro</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="produto-resumo" class="field__label">Resumo curto</label>
+                    <input type="text" id="produto-resumo" class="field__input" maxlength="160">
+                </div>
+                <div class="field">
+                    <label for="produto-sobre" class="field__label">Sobre <span class="field__optional">(um parágrafo por linha)</span></label>
+                    <textarea id="produto-sobre" class="field__input" rows="4"></textarea>
+                </div>
+                <div class="field">
+                    <label for="produto-preco" class="field__label">Preço (R$)</label>
+                    <input type="number" id="produto-preco" class="field__input" step="0.01" min="0" required>
+                </div>
+                <div class="field">
+                    <label for="produto-estoque" class="field__label">Estoque</label>
+                    <input type="number" id="produto-estoque" class="field__input" step="1" min="0" required>
+                </div>
+                <div class="field">
+                    <label for="produto-abv" class="field__label">ABV</label>
+                    <input type="text" id="produto-abv" class="field__input" maxlength="20">
+                </div>
+                <div class="field">
+                    <label for="produto-ibu" class="field__label">IBU</label>
+                    <input type="text" id="produto-ibu" class="field__input" maxlength="20">
+                </div>
+                <div class="field">
+                    <label for="produto-volume" class="field__label">Volume</label>
+                    <input type="text" id="produto-volume" class="field__input" maxlength="20">
+                </div>
+                <div class="field">
+                    <label for="produto-temperatura" class="field__label">Temperatura ideal</label>
+                    <input type="text" id="produto-temperatura" class="field__input" maxlength="40">
+                </div>
+                <div class="field">
+                    <label for="produto-copo" class="field__label">Copo indicado</label>
+                    <input type="text" id="produto-copo" class="field__input" maxlength="60">
+                </div>
+                <div class="field">
+                    <label for="produto-harmonizacao" class="field__label">Harmoniza com</label>
+                    <input type="text" id="produto-harmonizacao" class="field__input" maxlength="160">
+                </div>
+                <div class="field">
+                    <label for="produto-fotos" class="field__label">Fotos <span class="field__optional">(uma por linha: caminho | texto alternativo)</span></label>
+                    <textarea id="produto-fotos" class="field__input" rows="3" placeholder="assets/img/beer-ipa.jpg | Garrafa de cerveja IPA"></textarea>
+                </div>
+                <div class="field">
+                    <label for="produto-ordem" class="field__label">Ordem na vitrine</label>
+                    <input type="number" id="produto-ordem" class="field__input" step="1">
+                </div>
+                <label class="check">
+                    <input type="checkbox" id="produto-ativo" checked>
+                    <span>Ativo (visível na vitrine)</span>
+                </label>
+
+                <p class="form__message" id="produto-form-msg" aria-live="polite"></p>
+                <div class="admin-dialog__actions">
+                    <button type="submit" class="btn btn--primary form__submit">Salvar produto</button>
+                    <button type="button" class="btn btn--secondary account__danger-btn" id="produto-excluir" hidden>Excluir produto</button>
+                </div>
+            </form>
+        </div>
+    </dialog>
+
+    <script src="js/config.js" defer></script>
+    <script src="js/auth.js" defer></script>
+    <script type="module" src="js/admin.js"></script>
+</body>
+</html>

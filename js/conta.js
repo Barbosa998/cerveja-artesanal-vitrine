@@ -128,6 +128,112 @@
     }
 
     /* ======================================================================
+       LIMITE LOCAL DE TENTATIVAS (só UX: trava o botão e evita cliques
+       repetidos que esgotam o limite de e-mail/requisições do Supabase.
+       A proteção real contra abuso é sempre do servidor, não daqui.)
+       ====================================================================== */
+    const RATE_LIMIT_MAX = 5;
+    const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000; // 10 minutos
+
+    function attemptsKey(name) {
+        return `vitrine:tentativas:${name}`;
+    }
+
+    function readAttempts(name) {
+        try {
+            const list = JSON.parse(window.localStorage.getItem(attemptsKey(name)) || '[]');
+            if (!Array.isArray(list)) return [];
+            const now = Date.now();
+            return list.filter((t) => typeof t === 'number' && now - t < RATE_LIMIT_WINDOW_MS);
+        } catch (error) {
+            return [];
+        }
+    }
+
+    function registerAttempt(name) {
+        const list = readAttempts(name);
+        list.push(Date.now());
+        try {
+            window.localStorage.setItem(attemptsKey(name), JSON.stringify(list));
+        } catch (error) {
+            /* sem armazenamento: segue sem o limite local */
+        }
+    }
+
+    function clearAttempts(name) {
+        try {
+            window.localStorage.removeItem(attemptsKey(name));
+        } catch (error) {
+            /* nada a fazer */
+        }
+    }
+
+    // Quanto falta (em ms) até poder tentar de novo; 0 se ainda não bateu o limite
+    function cooldownRemaining(name) {
+        const list = readAttempts(name);
+        if (list.length < RATE_LIMIT_MAX) return 0;
+        const oldest = Math.min(...list);
+        return Math.max(0, RATE_LIMIT_WINDOW_MS - (Date.now() - oldest));
+    }
+
+    // Trava o botão e mostra uma contagem regressiva visível (aria-live já está no elemento de mensagem)
+    function startCooldown(form, message, ms) {
+        const button = $('button[type="submit"]', form);
+        const end = Date.now() + ms;
+
+        const tick = () => {
+            const remaining = end - Date.now();
+            if (remaining <= 0) {
+                button.disabled = false;
+                setMessage(message, '');
+                return;
+            }
+            button.disabled = true;
+            const seconds = Math.ceil(remaining / 1000);
+            setMessage(message, `Muitas tentativas seguidas. Aguarde ${seconds}s para tentar de novo.`);
+            window.setTimeout(tick, 1000);
+        };
+        tick();
+    }
+
+    // Quando o próprio Supabase devolve 429 (limite do servidor), a trava local
+    // ainda não teria disparado por conta própria: forçamos um cooldown visível
+    // de 60s para não deixar a pessoa clicando de novo imediatamente.
+    function isRateLimitError(error) {
+        const message = String((error && error.message) || '').toLowerCase();
+        return (error && error.status === 429) || message.includes('rate limit');
+    }
+
+    function forceCooldown(form, message, ms = 60000) {
+        const button = $('button[type="submit"]', form);
+        button.disabled = true;
+        startCooldown(form, message, ms);
+    }
+
+    // Envolve o envio de um formulário com o limite local + trava de clique duplo (withBusy)
+    async function guardedSubmit(form, name, message, action) {
+        const remaining = cooldownRemaining(name);
+        if (remaining > 0) {
+            startCooldown(form, message, remaining);
+            return;
+        }
+
+        registerAttempt(name);
+        await withBusy(form, action);
+    }
+
+    // Ferramenta de teste (só em localhost/127.0.0.1): limpa o estado local travado.
+    // Nunca ativa em produção, mesmo que alguém tente usar o parâmetro.
+    (function initLocalResetTool() {
+        const isLocalhost = ['localhost', '127.0.0.1', '[::1]'].includes(window.location.hostname);
+        if (!isLocalhost) return;
+        if (new URLSearchParams(window.location.search).get('reset-auth') !== '1') return;
+
+        ['login', 'signup', 'forgot'].forEach(clearAttempts);
+        window.console.info('[vitrine] Limite local de tentativas de login/cadastro foi zerado (ferramenta de teste em localhost).');
+    })();
+
+    /* ======================================================================
        ABAS (acessíveis, com setas do teclado)
        ====================================================================== */
     function initTabs(tablist, onSelect) {
@@ -174,13 +280,20 @@
             const message = $('#login-msg');
             setMessage(message, '');
 
-            withBusy(loginForm, async () => {
+            guardedSubmit(loginForm, 'login', message, async () => {
                 const { error } = await client.auth.signInWithPassword({
                     email: loginForm.email.value.trim(),
                     password: loginForm.password.value
                 });
-                if (error) setMessage(message, friendlyError(error));
-                // sucesso: o evento SIGNED_IN abre "Minha conta"
+                if (error) {
+                    if (isRateLimitError(error)) {
+                        forceCooldown(loginForm, message);
+                        return;
+                    }
+                    setMessage(message, friendlyError(error));
+                    return;
+                }
+                clearAttempts('login'); // sucesso: o evento SIGNED_IN abre "Minha conta"
             });
         });
 
@@ -191,7 +304,7 @@
             const message = $('#signup-msg');
             setMessage(message, '');
 
-            withBusy(signupForm, async () => {
+            guardedSubmit(signupForm, 'signup', message, async () => {
                 const email = signupForm.email.value.trim();
                 const { data, error } = await client.auth.signUp({
                     email,
@@ -207,6 +320,10 @@
                 });
 
                 if (error) {
+                    if (isRateLimitError(error)) {
+                        forceCooldown(signupForm, message);
+                        return;
+                    }
                     setMessage(message, friendlyError(error));
                     return;
                 }
@@ -220,7 +337,10 @@
                 // Com confirmação de e-mail ligada, ainda não há sessão
                 if (!data.session) {
                     signupForm.reset();
+                    clearAttempts('signup');
                     setMessage(message, `Quase lá! Enviamos um link de confirmação para ${email}. Clique nele para ativar sua conta.`, 'success');
+                } else {
+                    clearAttempts('signup');
                 }
             });
         });
@@ -235,14 +355,19 @@
             const message = $('#forgot-msg');
             setMessage(message, '');
 
-            withBusy(forgotForm, async () => {
+            guardedSubmit(forgotForm, 'forgot', message, async () => {
                 const { error } = await client.auth.resetPasswordForEmail(forgotForm.email.value.trim(), {
                     redirectTo: window.location.origin + window.location.pathname
                 });
                 if (error) {
+                    if (isRateLimitError(error)) {
+                        forceCooldown(forgotForm, message);
+                        return;
+                    }
                     setMessage(message, friendlyError(error));
                     return;
                 }
+                clearAttempts('forgot');
                 // Mesma resposta exista ou não o cadastro, para não revelar quem é cliente
                 setMessage(message, 'Se esse e-mail tiver cadastro, enviamos um link para você criar uma nova senha.', 'success');
             });
@@ -341,6 +466,39 @@
                 $('#account-name').textContent = nome ? nome.split(' ')[0] : 'cliente';
                 setMessage(message, 'Dados salvos.', 'success');
             });
+        });
+    }
+
+    /* ======================================================================
+       EXCLUIR CONTA (LGPD: direito de eliminação dos dados)
+       ====================================================================== */
+    function initDeleteAccount() {
+        const button = $('#delete-account-btn');
+        if (!button) return;
+
+        button.addEventListener('click', async () => {
+            const message = $('#delete-account-msg');
+            setMessage(message, '');
+
+            const confirmed = window.confirm(
+                'Tem certeza? Isso vai apagar sua conta, seus dados e o histórico de pedidos para sempre. Essa ação não pode ser desfeita.'
+            );
+            if (!confirmed) return;
+
+            button.disabled = true;
+            button.textContent = 'Excluindo...';
+
+            try {
+                const { error } = await client.rpc('excluir_conta');
+                if (error) throw error;
+
+                await client.auth.signOut();
+                window.location.href = 'index.html';
+            } catch (error) {
+                setMessage(message, 'Não foi possível excluir sua conta agora. Tente novamente ou fale com a gente pelo WhatsApp.');
+                button.disabled = false;
+                button.textContent = 'Excluir minha conta e meus dados';
+            }
         });
     }
 
@@ -490,6 +648,7 @@
 
         initForms();
         initProfileForm();
+        initDeleteAccount();
         initOrders();
 
         // O Supabase avisa quando alguém entra, sai ou abre o link de recuperar senha.

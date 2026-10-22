@@ -605,6 +605,18 @@ input {
     width: 100%;
 }
 
+.product-card__stock--out,
+.product-page__stock--out {
+    font-weight: 600;
+    color: #c0392b;
+}
+
+.showcase__loading {
+    padding: 2rem 0;
+    text-align: center;
+    color: var(--color-text-light);
+}
+
 /* ==========================================================================
    SOBRE
    ========================================================================== */
@@ -714,6 +726,15 @@ input {
 
 .newsletter__input::placeholder {
     color: rgba(255, 255, 255, 0.5);
+}
+
+.newsletter__consent {
+    grid-column: 2;
+    color: rgba(255, 255, 255, 0.75);
+}
+
+.newsletter__consent a {
+    color: var(--color-white);
 }
 
 .newsletter__message {
@@ -999,6 +1020,41 @@ input {
     font-family: var(--font-heading);
     font-size: 1.6rem;
     color: var(--color-secondary);
+}
+
+/* ---------- Endereço de entrega (CEP via ViaCEP) ---------- */
+.cart__address {
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--color-border);
+}
+
+.cart__address .field__label {
+    display: block;
+    margin-bottom: 0.4rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.cart__cep-status {
+    min-height: 1.2rem;
+    margin-top: 0.4rem;
+    font-size: 0.85rem;
+}
+
+.cart__cep-status--error {
+    color: #c0392b;
+    font-weight: 600;
+}
+
+.cart__cep-status--success {
+    color: var(--color-success);
+}
+
+.cart__address-fields {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 0.6rem;
+    margin-top: 0.6rem;
 }
 
 /* ==========================================================================
@@ -1527,6 +1583,28 @@ input {
     color: var(--color-text-light);
 }
 
+.account__danger {
+    margin-top: 2.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--color-border);
+}
+
+.account__danger-title {
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+    color: var(--color-secondary);
+}
+
+.account__danger-btn {
+    border-color: #c0392b;
+    color: #c0392b;
+}
+
+.account__danger-btn:hover {
+    background-color: #c0392b;
+    color: var(--color-white);
+}
+
 /* ---------- Abas ---------- */
 .tabs {
     display: flex;
@@ -1951,6 +2029,13 @@ input {
     display: inline-block;
     margin-top: 2rem;
     font-weight: 600;
+}
+
+.legal__note {
+    margin-top: 1rem;
+    padding: 0.85rem 1rem;
+    border-left: 3px solid var(--color-border);
+    font-size: 0.9rem;
 }
 
 /* ==========================================================================

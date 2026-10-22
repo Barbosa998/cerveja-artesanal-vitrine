@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- CSP: só permite recursos do próprio site, do CDN do Supabase e das fontes do Google.
+         Limitação: "frame-ancestors" não funciona por <meta> (precisa de cabeçalho HTTP). -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://*.supabase.co https://viacep.com.br; base-uri 'self'; form-action 'self'; object-src 'none';">
     <title>Política de Privacidade | Cervejaria Artesanal</title>
     <meta name="description" content="Como a Cervejaria Artesanal trata os dados pessoais dos clientes, conforme a LGPD.">
     <meta property="og:title" content="Política de Privacidade | Cervejaria Artesanal">
@@ -11,9 +14,7 @@
     <meta property="og:url" content="https://barbosa998.github.io/cerveja-artesanal-vitrine/">
     <meta property="og:image" content="https://barbosa998.github.io/cerveja-artesanal-vitrine/assets/img/beer-ipa.jpg">
 
-    <link rel="icon" href="assets/img/favicon.ico" sizes="any">
     <link rel="icon" href="assets/img/icon.svg" type="image/svg+xml">
-    <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
 
     <!-- Fontes: Outfit (títulos) + Plus Jakarta Sans (texto) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -89,23 +90,42 @@
                 <li><strong>Dados de cadastro:</strong> nome, e-mail, telefone (opcional) e senha. A senha é guardada de forma protegida (criptografada), e nós não temos acesso a ela.</li>
                 <li><strong>Dados de pedidos:</strong> itens, valores, cupom usado, data e status de cada pedido.</li>
                 <li><strong>Declaração de maioridade:</strong> registramos que você declarou ter 18 anos ou mais, pois vendemos bebida alcoólica.</li>
+                <li><strong>Carrinho de compras:</strong> guardado apenas no seu próprio navegador (localStorage), não em nossos servidores, até você finalizar o pedido.</li>
+                <li><strong>Conversa pelo WhatsApp:</strong> ao finalizar o pedido, você é direcionado ao WhatsApp para combinar pagamento e entrega; essa conversa fica no WhatsApp, sob as regras de privacidade do próprio aplicativo (Meta).</li>
             </ul>
 
             <h2>Para que usamos</h2>
             <ul>
                 <li>Criar e manter a sua conta.</li>
                 <li>Registrar, entregar e acompanhar os seus pedidos, e falar com você sobre eles.</li>
-                <li>Cumprir obrigações legais, como a venda apenas para maiores de idade.</li>
+                <li>Cumprir obrigações legais, como a venda apenas para maiores de idade e o Código de Defesa do Consumidor.</li>
+                <li>Enviar novidades por e-mail, apenas se você se inscrever voluntariamente na newsletter (consentimento separado e opcional).</li>
             </ul>
 
+            <h2>Quem acessa os pedidos</h2>
+            <p>A equipe da Cervejaria Artesanal tem um painel administrativo para confirmar pagamentos e atualizar o status dos pedidos. Só contas cadastradas como administradoras (controlado no banco de dados, não neste site) conseguem ver os pedidos de outras pessoas; cada mudança feita por um administrador fica registrada (data, quem fez e o quê) para fins de auditoria.</p>
+
             <h2>Onde os dados ficam guardados</h2>
-            <p>Usamos o serviço Supabase para autenticação e banco de dados. Os dados ficam protegidos por regras de acesso: cada cliente só consegue ver as próprias informações. Não vendemos nem compartilhamos seus dados com terceiros para fins de publicidade.</p>
+            <p>Usamos o serviço Supabase (hospedado fora do Brasil) como operador para autenticação e banco de dados, nos termos do art. 5º, VII, da LGPD. Os dados ficam protegidos por regras de acesso (Row Level Security): cada cliente só consegue ver as próprias informações. Não vendemos nem compartilhamos seus dados com terceiros para fins de publicidade.</p>
+
+            <h2>Por quanto tempo guardamos</h2>
+            <p>Mantemos os dados de cadastro e pedidos enquanto sua conta existir, e pelo prazo que a lei exigir para fins fiscais e de defesa em processos (em geral, até 5 anos após o último pedido). Se você excluir sua conta, apagamos seus dados de cadastro e perfil imediatamente; registros de pedidos já concluídos podem ser mantidos de forma anonimizada quando exigido por lei.</p>
 
             <h2>Seus direitos</h2>
-            <p>Você pode pedir a qualquer momento: acesso aos seus dados, correção, exclusão da conta e dos dados, e informações sobre o tratamento. Parte dos dados pode ser corrigida direto em &ldquo;Minha conta &gt; Meus dados&rdquo;. Para os demais pedidos, fale com a gente.</p>
+            <p>Conforme o art. 18 da LGPD, você pode pedir a qualquer momento: confirmação de que tratamos seus dados, acesso aos dados, correção de dados incompletos ou desatualizados, anonimização ou exclusão de dados desnecessários, portabilidade e exclusão da conta.</p>
+            <ul>
+                <li>Corrigir nome e telefone: direto em &ldquo;Minha conta &gt; Meus dados&rdquo;.</li>
+                <li>Excluir sua conta e todos os seus dados: no mesmo painel, em &ldquo;Meus dados&rdquo;, use o botão &ldquo;Excluir minha conta e meus dados&rdquo;. A ação é imediata e não pode ser desfeita.</li>
+                <li>Qualquer outro pedido (acesso, portabilidade, dúvidas): fale com a gente pelo contato abaixo.</li>
+            </ul>
+
+            <h2>Encarregado de dados (DPO)</h2>
+            <p>Para questões sobre proteção de dados, você pode falar com o nosso encarregado: <em>[PREENCHER — nome do encarregado]</em>, pelo e-mail <a href="mailto:contato@cervejariaexemplo.com.br">contato@cervejariaexemplo.com.br</a> <em>[PREENCHER — e-mail real, se diferente]</em>.</p>
 
             <h2>Contato</h2>
             <p>Dúvidas ou pedidos sobre seus dados: <a href="mailto:contato@cervejariaexemplo.com.br">contato@cervejariaexemplo.com.br</a>.</p>
+
+            <p>Veja também os nossos <a href="termos.html">Termos de Uso</a>, com as informações do fornecedor e o direito de arrependimento em compras feitas pela internet.</p>
 
             <p><a href="index.html" class="legal__back">Voltar para a página inicial</a></p>
         </article>
@@ -138,7 +158,7 @@
         <!-- Aviso Legal -->
         <div class="footer__legal">
             <small class="footer__warning">Venda proibida para menores de 18 anos. Beba com moderação.</small>
-            <p class="footer__legal-links"><a href="privacidade.html" class="footer__link">Política de Privacidade</a></p>
+            <p class="footer__legal-links"><a href="termos.html" class="footer__link">Termos de Uso</a> &middot; <a href="privacidade.html" class="footer__link">Política de Privacidade</a></p>
             <p class="footer__copyright">&copy; 2026 Cervejaria Artesanal. Todos os direitos reservados.</p>
         </div>
     </footer>
@@ -167,6 +187,21 @@
                     <span id="cart-discount"></span>
                 </p>
                 <p class="cart__total"><span>Total</span> <strong id="cart-total">R$ 0,00</strong></p>
+                <div class="cart__address">
+                    <label for="cart-cep" class="field__label">CEP para entrega <span class="field__optional">(opcional — ou combine &ldquo;retirar na fábrica&rdquo; pelo WhatsApp)</span></label>
+                    <input type="text" id="cart-cep" class="cart__coupon-input" placeholder="00000-000" inputmode="numeric" maxlength="9" autocomplete="postal-code">
+                    <p class="cart__cep-status" id="cart-cep-status" role="status" aria-live="polite"></p>
+                    <div class="cart__address-fields" id="cart-address-fields" hidden>
+                        <div class="field">
+                            <label for="cart-numero" class="field__label">Número</label>
+                            <input type="text" id="cart-numero" class="field__input" inputmode="numeric" maxlength="10" autocomplete="address-line2">
+                        </div>
+                        <div class="field">
+                            <label for="cart-complemento" class="field__label">Complemento <span class="field__optional">(opcional)</span></label>
+                            <input type="text" id="cart-complemento" class="field__input" maxlength="60" autocomplete="address-line3">
+                        </div>
+                    </div>
+                </div>
                 <p class="cart__notice" id="cart-notice" role="status"></p>
                 <button type="button" class="btn btn--primary cart__checkout" id="cart-checkout">Finalizar pelo WhatsApp</button>
                 <button type="button" class="btn btn--secondary cart__clear" id="cart-clear">Esvaziar carrinho</button>
@@ -186,6 +221,6 @@
 
         <script src="js/config.js" defer></script>
     <script src="js/auth.js" defer></script>
-    <script src="js/main.js" defer></script>
+    <script type="module" src="js/main.js"></script>
 </body>
 </html>

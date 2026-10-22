@@ -3,6 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- CSP: só permite recursos do próprio site, do CDN do Supabase e das fontes do Google.
+         Limitação: "frame-ancestors" não funciona por <meta> (precisa de cabeçalho HTTP),
+         então o GitHub Pages não impede que este site seja aberto dentro de um <iframe>. -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://*.supabase.co https://viacep.com.br; base-uri 'self'; form-action 'self'; object-src 'none';">
     <title>Cervejaria Artesanal | Compre Cervejas Locais e Frescas</title>
     <meta name="description" content="Descubra nossas cervejas artesanais feitas com paixão. Compre online IPAs, Stouts, Pilsens e mais. Frete para todo o Brasil e retirada na fábrica.">
 
@@ -15,9 +19,7 @@
     <meta property="og:image" content="https://barbosa998.github.io/cerveja-artesanal-vitrine/assets/img/beer-ipa.jpg">
 
     <!-- Favicon -->
-    <link rel="icon" href="assets/img/favicon.ico" sizes="any">
     <link rel="icon" href="assets/img/icon.svg" type="image/svg+xml">
-    <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
 
     <!-- Fontes: Outfit (títulos) + Plus Jakarta Sans (texto) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -157,127 +159,8 @@
                 </div>
             </form>
 
-            <div class="showcase__grid">
-                <!-- Card 1 -->
-                <article class="product-card" data-id="hop-explosion-ipa" data-estilo="ipa">
-                    <figure class="product-card__figure">
-                        <a href="produto.html?id=hop-explosion-ipa" class="product-card__figure-link" tabindex="-1" aria-hidden="true"><img src="assets/img/beer-ipa.jpg" alt="Garrafa de cerveja IPA com rótulo verde" class="product-card__img" loading="lazy" width="300" height="400"></a>
-                    </figure>
-                    <div class="product-card__details">
-                        <h3 class="product-card__name"><a href="produto.html?id=hop-explosion-ipa" class="product-card__link">Hop Explosion IPA</a></h3>
-                        <p class="product-card__style">India Pale Ale</p>
-                        <ul class="product-card__specs" aria-label="Especificações da cerveja">
-                            <li class="product-card__spec" title="Teor Alcoólico"><abbr title="Alcohol by Volume">ABV</abbr>: 6.5%</li>
-                            <li class="product-card__spec" title="Amargor"><abbr title="International Bitterness Units">IBU</abbr>: 55</li>
-                            <li class="product-card__spec" title="Volume">473ml</li>
-                        </ul>
-                        <p class="product-card__price-wrapper">
-                            <data value="28.90" class="product-card__price">R$ 28,90</data>
-                        </p>
-                        <button type="button" class="btn btn--primary product-card__add-btn" aria-label="Adicionar Hop Explosion IPA ao carrinho">Adicionar ao carrinho</button>
-                    </div>
-                </article>
-
-                <!-- Card 2 -->
-                <article class="product-card" data-id="midnight-stout" data-estilo="stout">
-                    <figure class="product-card__figure">
-                        <a href="produto.html?id=midnight-stout" class="product-card__figure-link" tabindex="-1" aria-hidden="true"><img src="assets/img/beer-stout.jpg" alt="Lata de cerveja Stout com rótulo escuro" class="product-card__img" loading="lazy" width="300" height="400"></a>
-                    </figure>
-                    <div class="product-card__details">
-                        <h3 class="product-card__name"><a href="produto.html?id=midnight-stout" class="product-card__link">Midnight Stout</a></h3>
-                        <p class="product-card__style">Dry Stout</p>
-                        <ul class="product-card__specs" aria-label="Especificações da cerveja">
-                            <li class="product-card__spec"><abbr title="Alcohol by Volume">ABV</abbr>: 5.0%</li>
-                            <li class="product-card__spec"><abbr title="International Bitterness Units">IBU</abbr>: 35</li>
-                            <li class="product-card__spec">473ml</li>
-                        </ul>
-                        <p class="product-card__price-wrapper">
-                            <data value="26.50" class="product-card__price">R$ 26,50</data>
-                        </p>
-                        <button type="button" class="btn btn--primary product-card__add-btn" aria-label="Adicionar Midnight Stout ao carrinho">Adicionar ao carrinho</button>
-                    </div>
-                </article>
-
-                <!-- Card 3 -->
-                <article class="product-card" data-id="classic-pilsen" data-estilo="pilsen">
-                    <figure class="product-card__figure">
-                        <a href="produto.html?id=classic-pilsen" class="product-card__figure-link" tabindex="-1" aria-hidden="true"><img src="assets/img/beer-pilsen.jpg" alt="Garrafa de cerveja Pilsen cristalina" class="product-card__img" loading="lazy" width="300" height="400"></a>
-                    </figure>
-                    <div class="product-card__details">
-                        <h3 class="product-card__name"><a href="produto.html?id=classic-pilsen" class="product-card__link">Classic Pilsen</a></h3>
-                        <p class="product-card__style">Premium American Lager</p>
-                        <ul class="product-card__specs" aria-label="Especificações da cerveja">
-                            <li class="product-card__spec"><abbr title="Alcohol by Volume">ABV</abbr>: 4.8%</li>
-                            <li class="product-card__spec"><abbr title="International Bitterness Units">IBU</abbr>: 15</li>
-                            <li class="product-card__spec">600ml</li>
-                        </ul>
-                        <p class="product-card__price-wrapper">
-                            <data value="22.00" class="product-card__price">R$ 22,00</data>
-                        </p>
-                        <button type="button" class="btn btn--primary product-card__add-btn" aria-label="Adicionar Classic Pilsen ao carrinho">Adicionar ao carrinho</button>
-                    </div>
-                </article>
-
-                <!-- Card 4 -->
-                <article class="product-card" data-id="bavarian-weiss" data-estilo="weiss">
-                    <figure class="product-card__figure">
-                        <a href="produto.html?id=bavarian-weiss" class="product-card__figure-link" tabindex="-1" aria-hidden="true"><img src="assets/img/beer-weiss.jpg" alt="Lata de cerveja Weiss com rótulo amarelo" class="product-card__img" loading="lazy" width="300" height="400"></a>
-                    </figure>
-                    <div class="product-card__details">
-                        <h3 class="product-card__name"><a href="produto.html?id=bavarian-weiss" class="product-card__link">Bavarian Weiss</a></h3>
-                        <p class="product-card__style">Hefeweizen</p>
-                        <ul class="product-card__specs" aria-label="Especificações da cerveja">
-                            <li class="product-card__spec"><abbr title="Alcohol by Volume">ABV</abbr>: 5.2%</li>
-                            <li class="product-card__spec"><abbr title="International Bitterness Units">IBU</abbr>: 12</li>
-                            <li class="product-card__spec">473ml</li>
-                        </ul>
-                        <p class="product-card__price-wrapper">
-                            <data value="25.90" class="product-card__price">R$ 25,90</data>
-                        </p>
-                        <button type="button" class="btn btn--primary product-card__add-btn" aria-label="Adicionar Bavarian Weiss ao carrinho">Adicionar ao carrinho</button>
-                    </div>
-                </article>
-
-                <!-- Card 5 -->
-                <article class="product-card" data-id="sunset-apa" data-estilo="apa">
-                    <figure class="product-card__figure">
-                        <a href="produto.html?id=sunset-apa" class="product-card__figure-link" tabindex="-1" aria-hidden="true"><img src="assets/img/beer-apa.jpg" alt="Garrafa de cerveja APA com rótulo laranja" class="product-card__img" loading="lazy" width="300" height="400"></a>
-                    </figure>
-                    <div class="product-card__details">
-                        <h3 class="product-card__name"><a href="produto.html?id=sunset-apa" class="product-card__link">Sunset APA</a></h3>
-                        <p class="product-card__style">American Pale Ale</p>
-                        <ul class="product-card__specs" aria-label="Especificações da cerveja">
-                            <li class="product-card__spec"><abbr title="Alcohol by Volume">ABV</abbr>: 5.5%</li>
-                            <li class="product-card__spec"><abbr title="International Bitterness Units">IBU</abbr>: 40</li>
-                            <li class="product-card__spec">473ml</li>
-                        </ul>
-                        <p class="product-card__price-wrapper">
-                            <data value="27.50" class="product-card__price">R$ 27,50</data>
-                        </p>
-                        <button type="button" class="btn btn--primary product-card__add-btn" aria-label="Adicionar Sunset APA ao carrinho">Adicionar ao carrinho</button>
-                    </div>
-                </article>
-
-                <!-- Card 6 -->
-                <article class="product-card" data-id="berry-sour" data-estilo="sour">
-                    <figure class="product-card__figure">
-                        <a href="produto.html?id=berry-sour" class="product-card__figure-link" tabindex="-1" aria-hidden="true"><img src="assets/img/beer-sour.jpg" alt="Lata de cerveja Sour com frutas vermelhas" class="product-card__img" loading="lazy" width="300" height="400"></a>
-                    </figure>
-                    <div class="product-card__details">
-                        <h3 class="product-card__name"><a href="produto.html?id=berry-sour" class="product-card__link">Berry Sour</a></h3>
-                        <p class="product-card__style">Catharina Sour</p>
-                        <ul class="product-card__specs" aria-label="Especificações da cerveja">
-                            <li class="product-card__spec"><abbr title="Alcohol by Volume">ABV</abbr>: 4.2%</li>
-                            <li class="product-card__spec"><abbr title="International Bitterness Units">IBU</abbr>: 8</li>
-                            <li class="product-card__spec">473ml</li>
-                        </ul>
-                        <p class="product-card__price-wrapper">
-                            <data value="30.00" class="product-card__price">R$ 30,00</data>
-                        </p>
-                        <button type="button" class="btn btn--primary product-card__add-btn" aria-label="Adicionar Berry Sour ao carrinho">Adicionar ao carrinho</button>
-                    </div>
-                </article>
-            </div>
+            <p class="showcase__loading" id="showcase-loading" role="status">Carregando cervejas...</p>
+            <div class="showcase__grid" id="showcase-grid"></div>
         </section>
 
         <!-- Seção Sobre -->
@@ -319,6 +202,10 @@
                     <input type="email" id="newsletter-email" name="email" class="newsletter__input" placeholder="seu@email.com" required autocomplete="email">
                     <button type="submit" class="btn btn--primary newsletter__submit">Assinar</button>
                 </form>
+                <label class="check newsletter__consent">
+                    <input type="checkbox" name="consentimento" form="newsletter-form" required>
+                    <span>Concordo em receber e-mails de novidades e aceito a <a href="privacidade.html" target="_blank" rel="noopener">Política de Privacidade</a>.</span>
+                </label>
                 <p class="newsletter__message" id="newsletter-message" role="status"></p>
             </div>
         </section>
@@ -352,7 +239,7 @@
         <!-- Aviso Legal -->
         <div class="footer__legal">
             <small class="footer__warning">Venda proibida para menores de 18 anos. Beba com moderação.</small>
-            <p class="footer__legal-links"><a href="privacidade.html" class="footer__link">Política de Privacidade</a></p>
+            <p class="footer__legal-links"><a href="termos.html" class="footer__link">Termos de Uso</a> &middot; <a href="privacidade.html" class="footer__link">Política de Privacidade</a></p>
             <p class="footer__copyright">&copy; 2026 Cervejaria Artesanal. Todos os direitos reservados.</p>
         </div>
     </footer>
@@ -381,6 +268,21 @@
                     <span id="cart-discount"></span>
                 </p>
                 <p class="cart__total"><span>Total</span> <strong id="cart-total">R$ 0,00</strong></p>
+                <div class="cart__address">
+                    <label for="cart-cep" class="field__label">CEP para entrega <span class="field__optional">(opcional — ou combine &ldquo;retirar na fábrica&rdquo; pelo WhatsApp)</span></label>
+                    <input type="text" id="cart-cep" class="cart__coupon-input" placeholder="00000-000" inputmode="numeric" maxlength="9" autocomplete="postal-code">
+                    <p class="cart__cep-status" id="cart-cep-status" role="status" aria-live="polite"></p>
+                    <div class="cart__address-fields" id="cart-address-fields" hidden>
+                        <div class="field">
+                            <label for="cart-numero" class="field__label">Número</label>
+                            <input type="text" id="cart-numero" class="field__input" inputmode="numeric" maxlength="10" autocomplete="address-line2">
+                        </div>
+                        <div class="field">
+                            <label for="cart-complemento" class="field__label">Complemento <span class="field__optional">(opcional)</span></label>
+                            <input type="text" id="cart-complemento" class="field__input" maxlength="60" autocomplete="address-line3">
+                        </div>
+                    </div>
+                </div>
                 <p class="cart__notice" id="cart-notice" role="status"></p>
                 <button type="button" class="btn btn--primary cart__checkout" id="cart-checkout">Finalizar pelo WhatsApp</button>
                 <button type="button" class="btn btn--secondary cart__clear" id="cart-clear">Esvaziar carrinho</button>
@@ -399,8 +301,10 @@
     <p class="sr-only" id="cart-status" role="status"></p>
 
     <!-- JS Principal -->
+    <script src="js/produtos.js" defer></script>
     <script src="js/config.js" defer></script>
     <script src="js/auth.js" defer></script>
-    <script src="js/main.js" defer></script>
+    <script src="js/catalog.js" defer></script>
+    <script type="module" src="js/main.js"></script>
 </body>
 </html>

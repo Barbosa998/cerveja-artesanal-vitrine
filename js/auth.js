@@ -10,6 +10,8 @@
     'use strict';
 
     const SUPABASE_SRC = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js';
+    // Garante que o arquivo baixado do CDN é exatamente o esperado (Subresource Integrity).
+    const SUPABASE_SRI = 'sha384-GFr3yTh5lJznCbZfpTtXnwboFsxqtTQoeTZCRHhE0579KrRmlCzen5AA8ohaB5ug';
     const config = window.VITRINE_CONFIG || {};
 
     const isConfigured = () => Boolean(config.supabaseUrl && config.supabaseAnonKey);
@@ -23,6 +25,8 @@
         return new Promise((resolve, reject) => {
             const script = document.createElement('script');
             script.src = SUPABASE_SRC;
+            script.integrity = SUPABASE_SRI;
+            script.crossOrigin = 'anonymous';
             script.onload = resolve;
             script.onerror = () => reject(new Error('Não foi possível carregar o Supabase.'));
             document.head.appendChild(script);

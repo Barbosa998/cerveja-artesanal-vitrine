@@ -26,18 +26,55 @@
     const prefersReducedMotion = () =>
         window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    const productId = new URLSearchParams(window.location.search).get('id');
-    const product = (window.PRODUTOS || []).find((item) => item.id === productId);
+    // Só considera "esgotado" quando o produto tem controle de estoque (vindo do
+    // Supabase) e ele chegou a zero. Produtos sem esse campo (reserva estática)
+    // continuam disponíveis como sempre.
+    const outOfStock = (item) => Number.isFinite(item.estoque) && item.estoque <= 0;
 
-    if (!product) {
-        renderNotFound();
-        return;
+    // Compara dois produtos ignorando a diferença de formato entre a reserva
+    // estática (produtos.js, sem o campo "estoque") e o que vem do Supabase
+    // (sempre com "estoque", nem que seja 0) — sem isso, a comparação
+    // JSON.stringify ingênua nunca bateria, e repintaríamos à toa sempre
+    // que os dados reais chegassem, mesmo sem nada ter mudado de verdade.
+    const sameProduct = (a, b) => {
+        const normalize = (p) => JSON.stringify({ ...p, estoque: Number.isFinite(p.estoque) ? p.estoque : 0 });
+        return normalize(a) === normalize(b);
+    };
+
+    const productId = new URLSearchParams(window.location.search).get('id');
+    const fallbackProdutos = window.PRODUTOS || [];
+    const fallbackProduct = fallbackProdutos.find((item) => item.id === productId);
+
+    // Pinta com os dados que já temos em mãos (a reserva estática, carregada
+    // de forma síncrona) assim que a página abre — sem esperar a rede.
+    // Isso evita o rodapé "pulando" quando o Supabase demora a responder
+    // (CLS alto). Se o catálogo do Supabase trouxer dados diferentes
+    // (preço/estoque atualizados no painel do admin), repintamos; se vier
+    // igual (o caso mais comum), não repintamos de novo.
+    if (fallbackProduct) {
+        renderProduct(fallbackProduct);
+        updateMetaTags(fallbackProduct);
+        initGallery();
+        initBuyBox(fallbackProduct);
     }
 
-    renderProduct(product);
-    updateMetaTags(product);
-    initGallery();
-    initBuyBox(product);
+    (window.VITRINE_CATALOG_READY || Promise.resolve(fallbackProdutos)).then((produtos) => {
+        const product = (produtos || []).find((item) => item.id === productId);
+
+        if (!product) {
+            if (!fallbackProduct) renderNotFound();
+            return;
+        }
+
+        if (fallbackProduct && sameProduct(product, fallbackProduct)) {
+            return; // já está na tela, igualzinho
+        }
+
+        renderProduct(product);
+        updateMetaTags(product);
+        initGallery();
+        initBuyBox(product);
+    });
 
     /* ======================================================================
        PRODUTO NÃO ENCONTRADO
@@ -166,13 +203,15 @@
                         <data value="${item.preco.toFixed(2)}">${brl.format(item.preco)}</data>
                     </p>
 
+                    ${outOfStock(item) ? '<p class="product-page__stock product-page__stock--out">Esgotado no momento.</p>' : ''}
+
                     <div class="product-page__buy">
                         <div class="qty" role="group" aria-label="Quantidade">
                             <button type="button" class="qty__btn" id="qty-decrease" aria-label="Diminuir quantidade">−</button>
                             <input type="number" class="qty__input" id="qty-input" value="1" min="1" max="${MAX_QTY}" inputmode="numeric" aria-label="Quantidade">
                             <button type="button" class="qty__btn" id="qty-increase" aria-label="Aumentar quantidade">+</button>
                         </div>
-                        <button type="button" class="btn btn--primary product-page__add-btn" id="add-to-cart">Adicionar ao carrinho</button>
+                        <button type="button" class="btn btn--primary product-page__add-btn" id="add-to-cart" ${outOfStock(item) ? 'disabled' : ''}>${outOfStock(item) ? 'Esgotado' : 'Adicionar ao carrinho'}</button>
                     </div>
 
                     <p class="product-page__note">Frete grátis em compras acima de R$ 150,00. Você também pode retirar na fábrica, em Maringá - PR.</p>
@@ -325,6 +364,7 @@
         });
 
         addButton.addEventListener('click', () => {
+            if (addButton.disabled || outOfStock(item)) return;
             if (!window.vitrine || typeof window.vitrine.addToCart !== 'function') return;
 
             window.vitrine.addToCart({ id: item.id, name: item.nome, price: item.preco }, readQty());
