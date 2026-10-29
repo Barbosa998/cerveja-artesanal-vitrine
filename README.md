@@ -28,8 +28,8 @@ A Cervejaria Artesanal é uma vitrine online completa para venda de cervejas art
 
 O objetivo do projeto não é só "funcionar": é servir de vitrine técnica para três frentes que costumam ficar de lado em projetos pequenos —
 
-- **Engenharia front-end de verdade**, mesmo sem framework: lógica de negócio (carrinho, cupom, máquina de estados do pedido, busca de CEP) extraída em módulos ES puros e testados com Vitest, em vez de espalhada em funções presas ao DOM.
-- **Performance e indexação**: HTML5 semântico, dados estruturados (Schema.org), e uma auditoria real com Lighthouse documentada — com antes/depois e explicação de cada correção.
+- **Engenharia front-end **, mesmo sem framework: lógica de negócio (carrinho, cupom, máquina de estados do pedido, busca de CEP) extraída em módulos ES e testados com Vitest.
+- **Performance e indexação**: HTML5 semântico, dados estruturados (Schema.org), e uma auditoria com Lighthouse documentada — com antes/depois e explicação de cada correção.
 - **Segurança e LGPD levadas a sério**, não só "funciona": Row Level Security no banco, CSP, SRI, máquina de estados validada no servidor, exclusão de conta e consentimento separado por finalidade.
 
 ## ✨ Funcionalidades
