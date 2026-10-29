@@ -121,7 +121,7 @@ begin
     end if;
 
     if v_pedido.status <> 'aguardando_pagamento' then
-        raise exception 'Este pedido já não está aguardando pagamento.';
+        raise exception 'Este pedido já não está aguardando pagamento.'; 
     end if;
 
     return v_pedido;
